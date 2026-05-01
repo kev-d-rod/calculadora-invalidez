@@ -9,12 +9,12 @@ import pandas as pd
 
 st.set_page_config(page_title="Monto Constitutivo", layout="centered")
 
-st.title("📊 Calculadora de Monto Constitutivo (Invalidez)")
+st.title(" Calculadora de Monto Constitutivo (Invalidez)")
 
 # -------------------------
 # DATOS GENERALES
 # -------------------------
-st.header("Datos del aseguradoooooo Jesús se está durmiendo")
+st.header("Datos del aseguradoooooo Jesús se está durmiendo. Lince xd")
 
 sexo = st.selectbox("Sexo", ["Hombre", "Mujer"])
 
