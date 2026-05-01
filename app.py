@@ -14,7 +14,7 @@ st.title("📊 Calculadora de Monto Constitutivo (Invalidez)")
 # -------------------------
 # DATOS GENERALES
 # -------------------------
-st.header("Datos del aseguradoooooo")
+st.header("Datos del aseguradoooooo Jesús se está durmiendo")
 
 sexo = st.selectbox("Sexo", ["Hombre", "Mujer"])
 
