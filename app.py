@@ -7,6 +7,14 @@
 import streamlit as st
 import pandas as pd
 
+@st.cache_data
+def cargar_datos():
+    tabla_inv = pd.read_csv("data/TablaMortalidad_Inv.csv")
+    inpc = pd.read_csv("data/inpc.csv")  # usa el nombre real
+    return tabla_inv, inpc
+
+tabla_inv, inpc = cargar_datos()
+
 st.set_page_config(page_title="Monto Constitutivo", layout="centered")
 
 st.title(" Calculadora de Monto Constitutivo (Invalidez)")
@@ -139,8 +147,13 @@ salarios_utilizados = salarios_validos[:10]
 # (opcional) mostrar qué años se usaron
 anios_validos = [anios[i] for i in range(len(salarios)) if salarios[i] > 0][:10]
 
-st.write("Años considerados para el cálculo:", anios_validos)
+salarios_actualizados = actualizar_salarios(
+    inpc,
+    salarios_validos,
+    anios_validos
+)
 
+st.write("Salarios actualizados:", salarios_actualizados)
 
 # -------------------------
 # VALIDACIONES
