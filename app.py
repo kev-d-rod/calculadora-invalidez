@@ -80,17 +80,29 @@ for i in range(num_asc):
 # -------------------------
 st.header("Salarios promedio diarios")
 
-anio_final = st.number_input("Último año cotizado", min_value=1900, max_value=2100, value=2023)
+anio_final = st.number_input(
+    "Último año cotizado",
+    min_value=1900,
+    max_value=2100,
+    value=2023
+)
 
-st.write("Ingresa los salarios de los últimos 10 años:")
+st.markdown(
+"""
+Ingresa los salarios promedio diarios de los últimos años.
 
-##
+- Puedes capturar **hasta 15 años** para cubrir posibles periodos sin cotización.
+- Si en algún año **no cotizaste**, déjalo en **0**.
+- El sistema tomará automáticamente **los últimos 10 años con salario distinto de 0**.
+- Si ya tienes 10 años completos, puedes dejar los demás en 0.
+"""
+)
 
-anios = [anio_final - i for i in range(15)]  # pones más años por seguridad
+# Generar años
+anios = [anio_final - i for i in range(15)]
 
 df_salarios = pd.DataFrame({
     "Año": anios,
-    "Cotizó": [True]*15,
     "Salario promedio diario": [0.0]*15
 })
 
@@ -103,22 +115,31 @@ df_editado = st.data_editor(
     disabled=["Año"]
 )
 
-df_validos = df_editado[df_editado["Cotizó"] == True]
+# Extraer datos
+salarios = df_editado["Salario promedio diario"].tolist()
 
-salarios = df_validos["Salario promedio diario"].tolist()
-
-
+# Validación: negativos
 for i, s in enumerate(salarios):
     if s < 0:
         errores.append(f"Salario negativo en año {anios[i]}")
-        
-if all(s == 0 for s in salarios):
-    errores.append("Todos los salarios son cero")
-    
 
+# Filtrar salarios válidos (ignorar ceros)
+salarios_validos = [s for s in salarios if s > 0]
 
+# Validaciones importantes
+if len(salarios_validos) == 0:
+    errores.append("No hay salarios válidos")
 
-##
+elif len(salarios_validos) < 10:
+    errores.append("Se requieren al menos 10 años con salario para aproximar 500 semanas")
+
+# Tomar SOLO los primeros 10 válidos
+salarios_utilizados = salarios_validos[:10]
+
+# (opcional) mostrar qué años se usaron
+anios_validos = [anios[i] for i in range(len(salarios)) if salarios[i] > 0][:10]
+
+st.write("Años considerados para el cálculo:", anios_validos)
 
 
 # -------------------------
