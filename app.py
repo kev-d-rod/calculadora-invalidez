@@ -39,9 +39,23 @@ st.header("Beneficiarios")
 tiene_conyuge = st.checkbox("¿Tiene cónyuge?")
 
 edad_conyuge = None
-if tiene_conyuge:
-    edad_conyuge = st.number_input("Edad del cónyuge", min_value=0, max_value=120)
+sexo_conyuge = None
 
+if tiene_conyuge:
+    col1, col2 = st.columns(2)
+
+    with col1:
+        edad_conyuge = st.number_input(
+            "Edad del cónyuge",
+            min_value=0,
+            max_value=120
+        )
+
+    with col2:
+        sexo_conyuge = st.selectbox(
+            "Sexo del cónyuge",
+            ["Hombre", "Mujer"]
+        )
 # -------------------------
 # HIJOS
 # -------------------------
