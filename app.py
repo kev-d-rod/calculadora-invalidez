@@ -10,7 +10,7 @@ import pandas as pd
 @st.cache_data
 def cargar_datos():
     tabla_inv = pd.read_csv("data/TablaMortalidad_Inv.csv")
-    inpc = pd.read_csv("data/inpc.csv")  # usa el nombre real
+    inpc = pd.read_csv("data/INPC_q.csv")  
     return tabla_inv, inpc
 
 tabla_inv, inpc = cargar_datos()
