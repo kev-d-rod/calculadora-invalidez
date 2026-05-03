@@ -6,6 +6,7 @@
 
 import streamlit as st
 import pandas as pd
+from core.inflacion import actualizar_salarios
 
 @st.cache_data
 def cargar_datos():
