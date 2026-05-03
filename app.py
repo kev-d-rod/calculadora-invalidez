@@ -86,11 +86,12 @@ st.write("Ingresa los salarios de los últimos 10 años:")
 
 ##
 
-anios = [anio_final - i for i in range(10)]
+anios = [anio_final - i for i in range(15)]  # pones más años por seguridad
 
 df_salarios = pd.DataFrame({
     "Año": anios,
-    "Salario promedio diario": [0.0]*10
+    "Cotizó": [True]*15,
+    "Salario promedio diario": [0.0]*15
 })
 
 st.write("Edita los salarios (puedes usar Enter como en Excel):")
@@ -102,7 +103,9 @@ df_editado = st.data_editor(
     disabled=["Año"]
 )
 
-salarios = df_editado["Salario promedio diario"].tolist()
+df_validos = df_editado[df_editado["Cotizó"] == True]
+
+salarios = df_validos["Salario promedio diario"].tolist()
 
 
 for i, s in enumerate(salarios):
