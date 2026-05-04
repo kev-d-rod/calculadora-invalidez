@@ -207,7 +207,7 @@ if st.button("Calcular monto constitutivo"):
             st.error(e)
 
     else:
-        resultado = calcular_monto_constitutivo(
+        suma, kpx_inv, kpy, vk, b1 = calcular_monto_constitutivo(
             edad=edad,
             conyuge=conyuge,
             salarios_actualizados=salarios_actualizados,
@@ -215,4 +215,5 @@ if st.button("Calcular monto constitutivo"):
             tabla_act=tabla_act
         )
 
-        st.metric("Monto constitutivo", f"${resultado:,.2f}")
+        st.metric("Suma actuarial", f"{suma:.6f}")
+        st.write("b1:", b1)
