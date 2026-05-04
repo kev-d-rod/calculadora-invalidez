@@ -8,7 +8,7 @@ import streamlit as st
 import pandas as pd
 from core.inflacion import actualizar_salarios
 from core.seguros import calcular_monto_constitutivo
-from core.probabilidades import calcular_pbsi
+from core.probabilidades import calcular_mcsi
 
 @st.cache_data
 def cargar_datos():
