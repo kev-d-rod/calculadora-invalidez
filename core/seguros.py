@@ -81,17 +81,8 @@ def calcular_monto_constitutivo(
             lx_inv=lx_inv,
             lx_hombres=lx_h,
             lx_mujeres=lx_m,
-            b1=b1,
-            debug=debug
+            b1=b1
         )
-        if debug:
-            return {
-                "pbss": pbss["pbss"],
-                "suma": pbss["suma"],
-                "b1": b1,
-                "salario_prom": salario_prom
-            }
-
         return pbss
 
     return 0
