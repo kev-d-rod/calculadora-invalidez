@@ -7,14 +7,16 @@
 import streamlit as st
 import pandas as pd
 from core.inflacion import actualizar_salarios
+from core.seguros import pbss_invalidez
 
 @st.cache_data
 def cargar_datos():
     tabla_inv = pd.read_csv("data/TablaMortalidad_Inv.csv")
+    tabla_act = pd.read_csv("data/TablaMortalidad_Act.csv")
     inpc = pd.read_csv("data/INPC_q.csv")  
-    return tabla_inv, inpc
+    return tabla_inv, tabla_act, inpc
 
-tabla_inv, inpc = cargar_datos()
+tabla_inv, tabla_act, inpc = cargar_datos()
 
 st.set_page_config(page_title="Monto Constitutivo", layout="centered")
 
