@@ -223,3 +223,5 @@ if st.button("Calcular monto constitutivo"):
             st.write("vk:", vk[i])
             st.write("término:", termino)
             st.write("---")
+            st.write("lx_cony base:", lx_cony[idx_y])
+            st.write("lx_cony siguiente:", lx_cony[idx_y + 1])
