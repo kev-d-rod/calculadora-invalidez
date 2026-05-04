@@ -216,4 +216,3 @@ if st.button("Calcular monto constitutivo"):
         )
 
         st.metric("Suma actuarial", f"{suma:.6f}")
-        st.write("b1:", b1)
