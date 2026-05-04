@@ -22,7 +22,7 @@ def pbss_invalidez(
 
     edad_min = 15
     idx_x = x - edad_min
-    idx_y = y - edad_min
+    idx_y = y
 
     max_k = min(len(lx_inv) - idx_x, len(lx_cony) - idx_y)
 
