@@ -8,15 +8,16 @@ import streamlit as st
 import pandas as pd
 from core.inflacion import actualizar_salarios
 from core.seguros import calcular_monto_constitutivo
+from core.probabilidades import calcular_pbsi
 
 @st.cache_data
 def cargar_datos():
     tabla_inv = pd.read_csv("data/TablaMortalidad_Inv.csv")
     tabla_act = pd.read_csv("data/TablaMortalidad_Act.csv")
     inpc = pd.read_csv("data/INPC_q.csv")  
-    return tabla_inv, tabla_act, inpc
+    return tabla_inv, tabla_act, inpc, tabla_desercion
 
-tabla_inv, tabla_act, inpc = cargar_datos()
+tabla_inv, tabla_act, inpc, tabla_desercion = cargar_datos()
 
 st.set_page_config(page_title="Monto Constitutivo", layout="centered")
 
@@ -104,9 +105,28 @@ for i in range(num_hijos):
 num_asc = st.number_input("Número de ascendientes", min_value=0, max_value=2)
 
 edades_asc = []
+sexos_asc = []
+
 for i in range(num_asc):
-    edad_asc = st.number_input(f"Edad ascendiente {i+1}", min_value=0, max_value=120)
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        edad_asc = st.number_input(
+            f"Edad ascendiente {i+1}",
+            min_value=0,
+            max_value=120,
+            key=f"edad_asc_{i}"
+        )
+    
+    with col2:
+        sexo_asc = st.selectbox(
+            f"Sexo ascendiente {i+1}",
+            ["hombre", "mujer"],
+            key=f"sexo_asc_{i}"
+        )
+    
     edades_asc.append(edad_asc)
+    sexos_asc.append(sexo_asc)
 
 # -------------------------
 # SALARIOS
@@ -205,11 +225,30 @@ if st.button("Calcular monto constitutivo"):
             st.error(e)
 
     else:
-        resultado = calcular_monto_constitutivo(
+        resultado_pbss = calcular_monto_constitutivo(
             edad=edad,
             conyuge=conyuge,
             salarios_actualizados=salarios_actualizados,
             tabla_inv=tabla_inv,
             tabla_act=tabla_act
         )
-        st.metric("Monto constitutivo", f"${resultado:,.2f}")
+
+        resultado_pbsi = calcular_pbsi(
+            edad_trabajador=edad,
+            salarios_actualizados=salarios_actualizados,
+            conyuge=conyuge,
+            hijos=hijos,
+            edades_asc=edades_asc,
+            sexo_asc=sexo_asc,
+            df_inv=tabla_inv,
+            df_act=tabla_act,
+            df_desercion=tabla_desercion
+        )
+
+        st.subheader("Resultados del Cálculo")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric("Monto Constitutivo (PBSS)", f"S{resultado_pbss:,.2f}")
+        with col2:
+            st.metric("Monto Constitutivo (PBSS)", f"S{resultado_pbsi:,.2f}")
