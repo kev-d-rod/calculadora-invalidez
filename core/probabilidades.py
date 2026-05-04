@@ -29,7 +29,7 @@ def calcular_pbsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
     # Parámetros base
     INC = 0.11
     cbiv_pct = 0.35
-    PMG = 4177
+    PMG = 4177.2
     i = 0.035
     v_escalar = 1 / (1 + i)
 
@@ -67,7 +67,7 @@ def calcular_pbsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
 
         min_len = min(len(kpxvk_trabajador), len(kpy_conyuge))
         conv = kpxvk_trabajador[:min_len] * ((kpy_conyuge[:min_len] * b1) + ((1 - kpy_conyuge[:min_len]) * b2))
-        pbsi_final = 11.81 * np.sum(conv) * (1 + INC)
+        pbsi_final = 11.81 * np.sum(conv)
 
     # CASO 3: CON CÓNYUGE Y CON HIJOS
     elif flag_conyuge == 1 and flag_hijos == 1:
@@ -161,4 +161,3 @@ def calcular_pbsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
         pbsi_final = 11.81 * suma_total_padres * (1 + INC)
 
     return pbsi_final
-    

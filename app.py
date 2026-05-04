@@ -252,4 +252,4 @@ if st.button("Calcular monto constitutivo"):
         with col1:
             st.metric("Monto Constitutivo (PBSS)", f"S{resultado_pbss:,.2f}")
         with col2:
-            st.metric("Monto Constitutivo (PBSS)", f"S{resultado_pbsi:,.2f}")
+            st.metric("Monto Constitutivo (PBSI)", f"S{resultado_pbsi:,.2f}")
