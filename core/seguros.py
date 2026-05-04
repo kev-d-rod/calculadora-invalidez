@@ -11,6 +11,7 @@ def pbss_invalidez(
     lx_mujeres,
     b1,
     i=0.035,
+    debug=debug
 ):
 
     if sexo_conyuge.lower() == "hombre":
@@ -103,5 +104,5 @@ def calcular_monto_constitutivo(
             }
 
         return pbss
-        
+
     return 0
