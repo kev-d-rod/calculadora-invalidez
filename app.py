@@ -180,8 +180,6 @@ salarios_actualizados = actualizar_salarios(
     anios_validos
 )
 
-st.write("Salarios actualizados:", salarios_actualizados)
-
 # -------------------------
 # VALIDACIONES
 # -------------------------
