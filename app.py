@@ -214,8 +214,6 @@ def calcular_monto():
 
     return monto
 
-tabla_inv = datos["inv"]
-tabla_act = datos["act"]
 
 from core.tablas import construir_lx_array
 
