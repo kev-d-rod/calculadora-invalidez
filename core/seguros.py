@@ -36,7 +36,7 @@ def pbss_invalidez(
 
     suma = np.sum((1 - kpx_inv) * kpy * vk)
 
-    return b1 * 13 * suma
+    return b1
 
 
 #  FUNCIÓN PRINCIPAL
