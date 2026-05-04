@@ -160,7 +160,7 @@ def calcular_mcsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
                 suma_total_padres += kpxvk_trabajador[k_idx] * ((1 - p1)*b1_vals[0] + p1*b1_vals[1])
         elif num_asc == 2:
             kp_z1, kp_z2 = vectores_padres[0], vectores_padres[1]
-            for k_idx in range(min_len):
+            for k_idx in range(min_len+20):
                 p1 = kp_z1[k_idx] if k_idx < len(kp_z1) else 0.0
                 p2 = kp_z2[k_idx] if k_idx < len(kp_z2) else 0.0
                 suma_total_padres += kpxvk_trabajador[k_idx] * (
