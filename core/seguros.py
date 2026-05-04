@@ -72,7 +72,7 @@ def calcular_monto_constitutivo(
     # PBSS (solo con cónyuge por ahora)
     # -------------------------
     if conyuge:
-        pbss = pbss_invalidez(
+        suma, kpx_inv, kpy, vk = pbss_invalidez(
             x=edad,
             y=conyuge["edad"],
             sexo_conyuge=conyuge["sexo"],
@@ -81,6 +81,6 @@ def calcular_monto_constitutivo(
             lx_mujeres=lx_m,
             b1=b1
         )
-        return pbss
+        return suma, kpx_inv, kpy, vk
 
     return 0
