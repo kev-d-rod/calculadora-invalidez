@@ -207,7 +207,7 @@ if st.button("Calcular monto constitutivo"):
             st.error(e)
 
     else:
-        suma, kpx_inv, kpy, vk = calcular_monto_constitutivo(
+        pbss = calcular_monto_constitutivo(
             edad=edad,
             conyuge=conyuge,
             salarios_actualizados=salarios_actualizados,
@@ -215,19 +215,4 @@ if st.button("Calcular monto constitutivo"):
             tabla_act=tabla_act
         )
 
-        st.write("Suma total:", suma)
-
-        # DEBUG KPY DIRECTO
-        for i in range(min(3, len(kpy))):
-            st.write(f"kpy[{i}]:", kpy[i])
-
-        st.write("----- DETALLE COMPLETO -----")
-
-        for i in range(5):
-            termino = (1 - kpx_inv[i]) * kpy[i] * vk[i]
-            st.write(f"k = {i}")
-            st.write("kpx_inv:", kpx_inv[i])
-            st.write("kpy:", kpy[i])
-            st.write("vk:", vk[i])
-            st.write("término:", termino)
-            st.write("---")
+        st.write("Suma total:", pbss)
