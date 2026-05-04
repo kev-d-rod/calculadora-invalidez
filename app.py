@@ -7,7 +7,7 @@
 import streamlit as st
 import pandas as pd
 from core.inflacion import actualizar_salarios
-from core.seguros import pbss_invalidez
+from core.seguros import calcular_monto_constitutivo
 
 @st.cache_data
 def cargar_datos():
@@ -39,7 +39,7 @@ semanas = st.number_input("Número de semanas cotizadas", min_value=0, step=1)
 st.header("Beneficiarios")
 
 tiene_conyuge = st.checkbox("¿Tiene cónyuge?")
-
+ 
 edad_conyuge = None
 sexo_conyuge = None
 
@@ -58,6 +58,14 @@ if tiene_conyuge:
             "Sexo del cónyuge",
             ["Hombre", "Mujer"]
         )
+
+conyuge = None
+
+if tiene_conyuge:
+    conyuge = {
+        "edad": edad_conyuge,
+        "sexo": sexo_conyuge
+    }
 # -------------------------
 # HIJOS
 # -------------------------
@@ -71,7 +79,7 @@ for i in range(num_hijos):
     col1, col2 = st.columns(2)
     
     with col1:
-        edad = st.number_input(
+        edad_hijo = st.number_input(
             f"Edad hijo {i+1}",
             min_value=0,
             max_value=30,
@@ -86,7 +94,7 @@ for i in range(num_hijos):
         )
     
     hijos.append({
-        "edad": edad,
+        "edad": edad_hijo,
         "sexo": sexo_hijo
     })
 
@@ -185,10 +193,6 @@ if tiene_conyuge and edad_conyuge is not None:
     if edad_conyuge < 15:
         errores.append("Edad del cónyuge inválida")
 
-for i, e in enumerate(hijos):
-    if e > 25:
-        errores.append(f"Hijo {i+1} con edad mayor a 25 (revisar dependencia)")
-
 if sum(salarios) == 0:
     errores.append("No has ingresado salarios")
 
@@ -216,37 +220,6 @@ def calcular_monto():
     return monto
 
 
-from core.tablas import construir_lx_array
-
-lx_inv = construir_lx_array(tabla_inv["qx"].values)
-
-lx_hombres = construir_lx_array(tabla_act["Hombres qx"].values)
-lx_mujeres = construir_lx_array(tabla_act["Mujeres qx"].values)
-
-salario_prom = sum(salarios_actualizados) / len(salarios_actualizados)
-
-PMG = 4177.2  # 👈 aquí luego metes el valor real
-
-cuant_diaria = 0.35 * 0.9 * salario_prom
-cuant_mensual = cuant_diaria * 365 / 12
-
-b1 = max(0.9 * PMG, cuant_mensual)
-
-from core.seguros import pbss_invalidez
-
-pbss = pbss_invalidez(
-    x=edad,
-    y=edad_conyuge,
-    sexo_conyuge=sexo_conyuge,
-    lx_inv=lx_inv,
-    lx_hombres=lx_hombres,
-    lx_mujeres=lx_mujeres,
-    b1=b1
-)
-
-st.metric("PBSS", f"${pbss:,.2f}")
-
-
 # -------------------------
 # RESULTADOS
 # -------------------------
@@ -254,26 +227,18 @@ st.header("Resultado")
 
 if st.button("Calcular monto constitutivo"):
 
-    if errores:
-        st.error("❌ Hay errores en los datos:")
+    if len(errores) > 0:
         for e in errores:
-            st.write(f"- {e}")
+            st.error(e)
+
     else:
-        monto = calcular_monto()
+        resultado = calcular_monto_constitutivo(
+            edad=edad,
+            conyuge=conyuge,
+            salarios_actualizados=salarios_actualizados,
+            tabla_inv=tabla_inv,
+            tabla_act=tabla_act
+        )
 
-        st.success("✅ Cálculo realizado correctamente")
-
-        st.metric(label="Monto constitutivo estimado", value=f"${monto:,.2f}")
-
-        # Mostrar resumen
-        with st.expander("Ver resumen de datos"):
-            st.write({
-                "Sexo": sexo,
-                "Edad": edad,
-                "Semanas": semanas,
-                "Cónyuge": edad_conyuge if tiene_conyuge else "No",
-                "Hijos": hijos,
-                "Ascendientes": edades_asc,
-                "Salarios": dict(zip(anios, salarios))
-            })
+        st.metric("Monto constitutivo", f"${resultado:,.2f}")
 
