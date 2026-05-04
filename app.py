@@ -215,8 +215,13 @@ if st.button("Calcular monto constitutivo"):
             tabla_act=tabla_act
         )
 
-        for i in range(3):
-        st.write(f"kpy[{i}]:", kpy[i])
+        st.write("Suma total:", suma)
+
+        # DEBUG KPY DIRECTO
+        for i in range(min(3, len(kpy))):
+            st.write(f"kpy[{i}]:", kpy[i])
+
+        st.write("----- DETALLE COMPLETO -----")
 
         for i in range(5):
             termino = (1 - kpx_inv[i]) * kpy[i] * vk[i]
