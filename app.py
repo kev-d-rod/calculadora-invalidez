@@ -240,7 +240,7 @@ if st.button("Calcular monto constitutivo"):
             conyuge=conyuge,
             hijos=hijos,
             edades_asc=edades_asc,
-            sexo_asc=sexo_asc,
+            sexos_asc=sexos_asc,
             df_inv=tabla_inv,
             df_act=tabla_act,
             df_desercion=tabla_desercion
