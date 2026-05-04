@@ -212,7 +212,5 @@ if st.button("Calcular monto constitutivo"):
             tabla_inv=tabla_inv,
             tabla_act=tabla_act
         )
-
-        st.json(resultado)
         st.write(type(resultado))
-        st.metric("Monto constitutivo", f"${resultado['MCSS']:,.2f}")
+        st.metric("Monto constitutivo", f"${resultado:,.2f}")

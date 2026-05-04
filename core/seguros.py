@@ -90,12 +90,6 @@ def calcular_monto_constitutivo(
         PNSS = FACBI * PBSS
         MCSS = PNSS * (1 + alpha)
 
-        return {
-            "MCSS": MCSS,
-            "PNSS": PNSS,
-            "PBSS": PBSS,
-            "b1": b1,
-            "suma": suma
-        }
+        return MCSS
 
     return 0
