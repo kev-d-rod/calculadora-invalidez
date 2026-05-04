@@ -215,4 +215,11 @@ if st.button("Calcular monto constitutivo"):
             tabla_act=tabla_act
         )
 
-        st.metric("Suma actuarial", f"{suma:.6f}")
+        for i in range(3):
+            termino = (1 - kpx_inv[i]) * kpy[i] * vk[i]
+            st.write(f"k = {i}")
+            st.write("kpx_inv:", kpx_inv[i])
+            st.write("kpy:", kpy[i])
+            st.write("vk:", vk[i])
+            st.write("término:", termino)
+            st.write("---")
