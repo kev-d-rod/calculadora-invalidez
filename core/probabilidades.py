@@ -75,8 +75,15 @@ def calcular_mcsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
     # CASO 3: CON CÓNYUGE Y CON HIJOS
     elif flag_conyuge == 1 and flag_hijos == 1:
         aa = 0.16
-        def b1_j(j): return max(cuantia_mensual_base_gral * (1 + 0.15 + (j * 0.10) + aa), PMG) + (1/12 * max(cuantia_mensual_base_gral, PMG))
-        def b2_j(j): return max(cuantia_mensual_base_gral * (1 + 0.15 + (0 if j==0 else j*0.10) + (0 if j==0 else aa)), PMG) + (1/12 * max(cuantia_mensual_base_gral, PMG))
+        def b1_j(j):
+            b1_j = max(cuantia_mensual_base_gral * (1 + 0.15 + (j * 0.10) + aa), PMG) + (1/12 * max(cuantia_mensual_base_gral, PMG))
+            return b1_j
+        def b2_j(j):
+            if j == 0:
+                b2_j = max(cuantia_mensual_base_gral * (1 + 0.15), PMG) + (1/12 * max(cuantia_mensual_base_gral, PMG))
+            if j != 0:
+                b2_j = max(cuantia_mensual_base_gral * (1 + (j * 0.10) + aa), PMG) + (1/12 * max(cuantia_mensual_base_gral, PMG))
+            return b2_j
 
         b1_vals = [b1_j(j) for j in range(num_hijos + 1)]
         b2_vals = [b2_j(j) for j in range(num_hijos + 1)]
