@@ -164,6 +164,6 @@ def calcular_mcsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
                 )
 
         pnsi = 11.81 * suma_total_padres * FACBI
-        mcsi_final = b1_j(0)
+        mcsi_final = b1_j(1)
 
     return mcsi_final
