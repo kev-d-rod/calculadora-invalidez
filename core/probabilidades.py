@@ -56,7 +56,7 @@ def calcular_mcsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
 
         sum_ax = np.sum(kpxvk_trabajador)
         ax12 = sum_ax - (11/24)
-        pnsi = b1 * 12 * ax12 * FACBI
+        pnsi = b1 * 12 * ax12 * FACBI * (1 + INC)
         mcsi_final = pnsi * (1+0.02+0.01)
 
     # CASO 2: CON CÓNYUGE, SIN HIJOS
