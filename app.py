@@ -214,5 +214,5 @@ if st.button("Calcular monto constitutivo"):
         )
 
         st.json(resultado)
-
+        st.write(type(resultado))
         st.metric("Monto constitutivo", f"${resultado['MCSS']:,.2f}")
