@@ -135,7 +135,13 @@ def calcular_mcsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
     # CASO 4: SIN CÓNYUGE, SIN HIJOS, CON PADRES
     elif flag_conyuge == 0 and flag_hijos == 0 and flag_padres == 1:
         aa = 0.16
-        def b1_j(j): return max(cuantia_mensual_base_gral * (1 + 0.15 + (0 if j==0 else j*0.10+aa)), PMG) + (1/12 * max(cuantia_mensual_base_gral, PMG))
+        def b1_j(j):
+            return max(
+                cuantia_mensual_base_gral * (
+                    (1 + 0.15) if j == 0 else (1 + j*0.10 + aa)
+                ),
+                PMG
+            ) + (1/12 * max(cuantia_mensual_base_gral, PMG))
         b1_vals = [b1_j(j) for j in range(num_asc + 1)]
 
         vectores_padres = []
