@@ -212,6 +212,40 @@ def calcular_monto():
 
     return monto
 
+tabla_inv = datos["inv"]
+tabla_act = datos["act"]
+
+from core.tablas import construir_lx_array
+
+lx_inv = construir_lx_array(tabla_inv["qx"].values)
+
+lx_hombres = construir_lx_array(tabla_act["Hombres qx"].values)
+lx_mujeres = construir_lx_array(tabla_act["Mujeres qx"].values)
+
+salario_prom = sum(salarios_actualizados) / len(salarios_actualizados)
+
+PMG = 4177.2  # 👈 aquí luego metes el valor real
+
+cuant_diaria = 0.35 * 0.9 * salario_prom
+cuant_mensual = cuant_diaria * 365 / 12
+
+b1 = max(0.9 * PMG, cuant_mensual)
+
+from core.seguros import pbss_invalidez
+
+pbss = pbss_invalidez(
+    x=edad,
+    y=edad_conyuge,
+    sexo_conyuge=sexo_conyuge,
+    lx_inv=lx_inv,
+    lx_hombres=lx_hombres,
+    lx_mujeres=lx_mujeres,
+    b1=b1
+)
+
+st.metric("PBSS", f"${pbss:,.2f}")
+
+
 # -------------------------
 # RESULTADOS
 # -------------------------
