@@ -35,8 +35,7 @@ def pbss_invalidez(
     vk = v ** k
 
     suma = np.sum((1 - kpx_inv) * kpy * vk)
-    return suma
-
+    return suma, kpx_inv, kpy, vk
 
 #  FUNCIÓN PRINCIPAL
 def calcular_monto_constitutivo(
