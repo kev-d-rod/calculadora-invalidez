@@ -35,15 +35,6 @@ def pbss_invalidez(
     vk = v ** k
 
     suma = np.sum((1 - kpx_inv) * kpy * vk)
-
-    for i in range(10):
-    print(f"k={i}")
-    print("kpx_inv:", kpx_inv[i])
-    print("kpy:", kpy[i])
-    print("vk:", vk[i])
-    print("termino:", (1 - kpx_inv[i]) * kpy[i] * vk[i])
-    print("-----")
-
     return suma
 
 
