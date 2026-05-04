@@ -16,7 +16,7 @@ def cargar_datos():
     inpc = pd.read_csv("data/INPC_q.csv")  
     return tabla_inv, tabla_act, inpc
 
-tabla_inv, tabla_act, inpc = cargar_datos()
+datos = cargar_datos()
 
 st.set_page_config(page_title="Monto Constitutivo", layout="centered")
 
