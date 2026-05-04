@@ -207,7 +207,7 @@ if st.button("Calcular monto constitutivo"):
             st.error(e)
 
     else:
-        suma, kpx_inv, kpy, vk, b1 = calcular_monto_constitutivo(
+        suma, kpx_inv, kpy, vk = calcular_monto_constitutivo(
             edad=edad,
             conyuge=conyuge,
             salarios_actualizados=salarios_actualizados,
