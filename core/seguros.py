@@ -10,7 +10,8 @@ def pbss_invalidez(
     lx_hombres,
     lx_mujeres,
     b1,
-    i=0.035
+    i=0.035,
+    debug=False
 ):
 
     if sexo_conyuge.lower() == "hombre":
@@ -36,7 +37,16 @@ def pbss_invalidez(
 
     suma = np.sum((1 - kpx_inv) * kpy * vk)
 
-    return b1 * 13 * suma
+    resultado = b1 * 13 * suma
+
+    if debug:
+        return {
+            "pbss": resultado,
+            "suma": suma,
+            "b1": b1
+        }
+        
+    return resultado
 
 
 #  FUNCIÓN PRINCIPAL
