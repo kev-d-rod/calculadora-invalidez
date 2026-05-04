@@ -39,7 +39,7 @@ def pbss_invalidez(
     return b1 * 13 * suma
 
 
-# 🔥 FUNCIÓN PRINCIPAL
+#  FUNCIÓN PRINCIPAL
 def calcular_monto_constitutivo(
     edad,
     conyuge,
