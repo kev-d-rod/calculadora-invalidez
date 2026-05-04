@@ -215,6 +215,9 @@ if st.button("Calcular monto constitutivo"):
             tabla_act=tabla_act
         )
 
+        for i in range(3):
+        st.write(f"kpy[{i}]:", kpy[i])
+
         for i in range(5):
             termino = (1 - kpx_inv[i]) * kpy[i] * vk[i]
             st.write(f"k = {i}")
@@ -223,5 +226,3 @@ if st.button("Calcular monto constitutivo"):
             st.write("vk:", vk[i])
             st.write("término:", termino)
             st.write("---")
-            st.write("lx_cony base:", lx_cony[idx_y])
-            st.write("lx_cony siguiente:", lx_cony[idx_y + 1])
