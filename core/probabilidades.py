@@ -14,7 +14,7 @@ def generar_kpx(df, col_edad, col_qx, edad_inicio):
     kpx = np.insert(kpx, 0, 1.0)[:-1] 
     return kpx
 
-def calcular_pbsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades_asc, sexos_asc, df_inv, df_act, df_desercion):
+def calcular_mcsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades_asc, sexos_asc, df_inv, df_act, df_desercion):
     # Promedio diario
     promedio_diario = sum(salarios_actualizados) / len(salarios_actualizados) if salarios_actualizados else 0.0
 
@@ -45,7 +45,7 @@ def calcular_pbsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
     aguinaldo = (1/12) * max(cbiv * (365/12), PMG)
     cuantia_mensual_base_gral = cbiv * 365 * (1/12)
 
-    pbsi_final = 0.0
+    mcsi_final = 0.0
 
     # CASO 1: SIN CÓNYUGE, SIN HIJOS, SIN PADRES
     if flag_conyuge == 0 and flag_hijos == 0 and flag_padres == 0:
@@ -56,7 +56,8 @@ def calcular_pbsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
 
         sum_ax = np.sum(kpxvk_trabajador)
         ax12 = sum_ax - (11/24)
-        pbsi_final = b1 * 12 * ax12 * (1 + INC)
+        pnsi = b1 * 12 * ax12 * FACBI
+        mcsi_final = pnsi * (1+0.02+0.01)
 
     # CASO 2: CON CÓNYUGE, SIN HIJOS
     elif flag_conyuge == 1 and flag_hijos == 0:
@@ -68,7 +69,8 @@ def calcular_pbsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
 
         min_len = min(len(kpxvk_trabajador), len(kpy_conyuge))
         conv = kpxvk_trabajador[:min_len] * ((kpy_conyuge[:min_len] * b1) + ((1 - kpy_conyuge[:min_len]) * b2))
-        pbsi_final = 11.81 * np.sum(conv) * FACBI
+        pnsi = 11.81 * np.sum(conv) * FACBI
+        mcsi_final = pnsi* (1 + 0.02 + 0.01)
 
     # CASO 3: CON CÓNYUGE Y CON HIJOS
     elif flag_conyuge == 1 and flag_hijos == 1:
@@ -126,7 +128,8 @@ def calcular_pbsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
         tot_kpysubsum = (kpy_conyuge[:min_len] * sumab1[:min_len]) + ((1 - kpy_conyuge[:min_len]) * sumab2[:min_len])
 
         min_len_final = min(len(tot_kpysubsum), len(kpxvk_trabajador))
-        pbsi_final = 11.81 * np.sum(tot_kpysubsum[:min_len_final] * kpxvk_trabajador[:min_len_final]) * (1 + INC)
+        pnsi = 11.81 * np.sum(tot_kpysubsum[:min_len_final] * kpxvk_trabajador[:min_len_final]) * FACBI
+        mcsi_final = 11.81 * np.sum(tot_kpysubsum[:min_len_final] * kpxvk_trabajador[:min_len_final]) * (1 + 0.02 + 0.01)
 
     # CASO 4: SIN CÓNYUGE, SIN HIJOS, CON PADRES
     elif flag_conyuge == 0 and flag_hijos == 0 and flag_padres == 1:
@@ -159,6 +162,7 @@ def calcular_pbsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
                     (p1*p2)*b1_vals[2]
                 )
 
-        pbsi_final = 11.81 * suma_total_padres * (1 + INC)
+        pnsi = 11.81 * suma_total_padres * FACBI
+        mcsi_final = pnsi *(1 + 0.02 + 0.01)
 
-    return pbsi_final
+    return mcsi_final

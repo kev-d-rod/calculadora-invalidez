@@ -234,7 +234,7 @@ if st.button("Calcular monto constitutivo"):
             tabla_act=tabla_act
         )
 
-        resultado_pbsi = calcular_pbsi(
+        resultado_pbsi = calcular_mcsi(
             edad_trabajador=edad,
             salarios_actualizados=salarios_actualizados,
             conyuge=conyuge,
@@ -252,4 +252,4 @@ if st.button("Calcular monto constitutivo"):
         with col1:
             st.metric("Monto Constitutivo (PBSS)", f"S{resultado_pbss:,.2f}")
         with col2:
-            st.metric("Monto Constitutivo (PBSI)", f"S{resultado_pbsi:,.2f}")
+            st.metric("Monto Constitutivo (MCSI)", f"S{resultado_mcsi:,.2f}")
