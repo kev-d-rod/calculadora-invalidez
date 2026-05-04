@@ -152,6 +152,8 @@ for i, s in enumerate(salarios):
 salarios_validos = [s for s in salarios if s > 0]
 
 # Validaciones importantes
+errores = []
+
 if len(salarios_validos) == 0:
     errores.append("No hay salarios válidos")
 
@@ -175,7 +177,6 @@ st.write("Salarios actualizados:", salarios_actualizados)
 # -------------------------
 # VALIDACIONES
 # -------------------------
-errores = []
 
 if edad < 15:
     errores.append("La edad del asegurado es demasiado baja")
