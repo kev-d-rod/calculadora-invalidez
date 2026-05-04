@@ -196,29 +196,6 @@ if tiene_conyuge and edad_conyuge is not None:
 if sum(salarios) == 0:
     errores.append("No has ingresado salarios")
 
-# -------------------------
-# FUNCIÓN DE CÁLCULO (placeholder)
-# -------------------------
-def calcular_monto():
-    """
-    Aquí metes tu modelo actuarial real.
-    Por ahora es un ejemplo sencillo.
-    """
-
-    salario_promedio = sum(salarios) / len(salarios)
-
-    factor_familiar = 1
-
-    if tiene_conyuge:
-        factor_familiar += 0.15
-
-    factor_familiar += 0.10 * len(hijos)
-    factor_familiar += 0.05 * len(edades_asc)
-
-    monto = salario_promedio * 30 * factor_familiar
-
-    return monto
-
 
 # -------------------------
 # RESULTADOS
