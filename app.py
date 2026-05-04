@@ -205,7 +205,7 @@ if st.button("Calcular monto constitutivo"):
             st.error(e)
 
     else:
-        pbss = calcular_monto_constitutivo(
+        resultado = calcular_monto_constitutivo(
             edad=edad,
             conyuge=conyuge,
             salarios_actualizados=salarios_actualizados,
@@ -213,4 +213,6 @@ if st.button("Calcular monto constitutivo"):
             tabla_act=tabla_act
         )
 
-        st.write("Suma total:", pbss)
+        st.json(resultado)
+
+        st.metric("Monto constitutivo", f"${resultado['MCSS']:,.2f}")
