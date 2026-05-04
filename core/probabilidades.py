@@ -129,7 +129,7 @@ def calcular_mcsi(edad_trabajador, salarios_actualizados, conyuge, hijos, edades
 
         min_len_final = min(len(tot_kpysubsum), len(kpxvk_trabajador))
         pnsi = 11.81 * np.sum(tot_kpysubsum[:min_len_final] * kpxvk_trabajador[:min_len_final]) * FACBI * (1 + INC)
-        mcsi_final = np.sum(tot_kpysubsum[:min_len_final] * kpxvk_trabajador[:min_len_final])
+        mcsi_final = pnsi * (1 + 0.02 + 0.01)
         #11.81 * np.sum(tot_kpysubsum[:min_len_final] * kpxvk_trabajador[:min_len_final]) * (1 + 0.02 + 0.01)
 
     # CASO 4: SIN CÓNYUGE, SIN HIJOS, CON PADRES
