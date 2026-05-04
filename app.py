@@ -14,6 +14,7 @@ from core.probabilidades import calcular_pbsi
 def cargar_datos():
     tabla_inv = pd.read_csv("data/TablaMortalidad_Inv.csv")
     tabla_act = pd.read_csv("data/TablaMortalidad_Act.csv")
+    tabla_desercion = pd.read_csv("data/TablaDesercion_D.csv")
     inpc = pd.read_csv("data/INPC_q.csv")  
     return tabla_inv, tabla_act, inpc, tabla_desercion
 
