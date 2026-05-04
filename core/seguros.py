@@ -10,8 +10,7 @@ def pbss_invalidez(
     lx_hombres,
     lx_mujeres,
     b1,
-    i=0.035,
-    debug=debug
+    i=0.035
 ):
 
     if sexo_conyuge.lower() == "hombre":
@@ -37,16 +36,7 @@ def pbss_invalidez(
 
     suma = np.sum((1 - kpx_inv) * kpy * vk)
 
-    resultado = b1 * 13 * suma
-
-    if debug:
-        return {
-            "pbss": resultado,
-            "suma": suma,
-            "b1": b1
-        }
-
-    return resultado
+    return b1 * 13 * suma
 
 
 #  FUNCIÓN PRINCIPAL
@@ -55,8 +45,7 @@ def calcular_monto_constitutivo(
     conyuge,
     salarios_actualizados,
     tabla_inv,
-    tabla_act,
-    debug = False
+    tabla_act
 ):
 
     # -------------------------

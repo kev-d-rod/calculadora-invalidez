@@ -200,15 +200,7 @@ if sum(salarios) == 0:
 # -------------------------
 # RESULTADOS
 # -------------------------
-st.header("Resultado")
-
-with st.form("formulario"):
-
-    debug_mode = st.checkbox("Modo debug")
-
-    submit = st.form_submit_button("Calcular monto constitutivo")
-
-if submit:
+if st.button("Calcular monto constitutivo"):
 
     if len(errores) > 0:
         for e in errores:
@@ -220,20 +212,7 @@ if submit:
             conyuge=conyuge,
             salarios_actualizados=salarios_actualizados,
             tabla_inv=tabla_inv,
-            tabla_act=tabla_act,
-            debug=debug_mode
+            tabla_act=tabla_act
         )
 
-        if debug_mode and isinstance(resultado, dict):
-
-            st.subheader("DEBUG")
-
-            st.json(resultado)
-
-            st.metric("PBSS", f"${resultado['pbss']:,.2f}")
-            st.write("Suma:", resultado["suma"])
-            st.write("b1:", resultado["b1"])
-            st.write("Salario promedio:", resultado["salario_prom"])
-
-        else:
-            st.metric("Monto constitutivo", f"${resultado:,.2f}")
+        st.metric("Monto constitutivo", f"${resultado:,.2f}")
