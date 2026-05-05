@@ -91,6 +91,27 @@ def calcular_monto_constitutivo(
             b1=1
             # aquí tus lx como ya los tienes
         )
+        # -------------------------
+        # cuantías
+        # -------------------------
+        PMG = 4177.2
+
+        cuant_diaria = 0.35 * 0.9 * salario_prom
+        cuant_mensual = cuant_diaria * 365 / 12
+
+        b1 = max(0.9 * PMG, cuant_mensual)
+
+        PBSS = b1 * 13 * suma
+
+        # ajustes
+        FACBI = 1.00198213882427
+        alpha = 0.02
+
+        PNSS = FACBI * PBSS
+        MCSS = PNSS * (1 + alpha)
+
+        return MCSS
+
 
     return 0
 # -------------------------
