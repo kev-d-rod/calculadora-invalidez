@@ -118,6 +118,7 @@ def prob_hijo_activo(k, hijo, lx_h, lx_m, edades_act, tabla_desercion):
         lx = lx_m
 
     if idx_k >= len(lx):
+        return 0.0
     kp = lx[idx_k] / lx[idx_0]
 
     # menor de 16 → solo supervivencia
