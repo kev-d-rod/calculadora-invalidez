@@ -9,23 +9,19 @@ def pbss_invalidez(
     lx_inv,
     lx_hombres,
     lx_mujeres,
-    b1,
     i=0.035
 ):
 
     if sexo_conyuge.lower() == "hombre":
         lx_cony = lx_hombres
-    elif sexo_conyuge.lower() == "mujer":
-        lx_cony = lx_mujeres
     else:
-        raise ValueError("sexo_conyuge debe ser 'hombre' o 'mujer'")
+        lx_cony = lx_mujeres
 
     edad_min = 15
     idx_x = x - edad_min
     idx_y = y
 
     max_k = min(len(lx_inv) - idx_x, len(lx_cony) - idx_y)
-
     k = np.arange(0, max_k)
 
     kpx_inv = lx_inv[idx_x + k] / lx_inv[idx_x]
@@ -37,7 +33,7 @@ def pbss_invalidez(
     suma = np.sum((1 - kpx_inv) * kpy * vk)
     return suma
 
-#  FUNCIÓN PRINCIPAL
+
 def calcular_monto_constitutivo(
     edad,
     conyuge,
@@ -48,7 +44,6 @@ def calcular_monto_constitutivo(
     tabla_desercion
 ):
 
-    
     # -------------------------
     # lx
     # -------------------------
@@ -57,16 +52,16 @@ def calcular_monto_constitutivo(
     lx_m = construir_lx_array(tabla_act["Mujeres qx"].values)
 
     # -------------------------
-    # salarios
+    # salario promedio
     # -------------------------
     salario_prom = sum(salarios_actualizados) / len(salarios_actualizados)
 
     # -------------------------
-    # CASO 1: cónyuge + hijos
+    # PASO 1: SUMA ACTUARIAL
     # -------------------------
     if conyuge and len(hijos) > 0:
 
-        return pbss_con_hijos(
+        suma = pbss_con_hijos(
             x=edad,
             y=conyuge,
             hijos=hijos,
@@ -76,43 +71,45 @@ def calcular_monto_constitutivo(
             tabla_desercion=tabla_desercion
         )
 
-    # -------------------------
-    # CASO 2: solo cónyuge
-    # -------------------------
-    elif conyuge and len(hijos) == 0:
+    elif conyuge:
 
-        return pbss_invalidez(
+        suma = pbss_invalidez(
             x=edad,
             y=conyuge["edad"],
             sexo_conyuge=conyuge["sexo"],
             lx_inv=lx_inv,
             lx_hombres=lx_h,
-            lx_mujeres=lx_m,
-            b1=1
-            # aquí tus lx como ya los tienes
+            lx_mujeres=lx_m
         )
-        # -------------------------
-        # cuantías
-        # -------------------------
-        PMG = 4177.2
 
-        cuant_diaria = 0.35 * 0.9 * salario_prom
-        cuant_mensual = cuant_diaria * 365 / 12
+    else:
+        return 0
 
-        b1 = max(0.9 * PMG, cuant_mensual)
+    # -------------------------
+    # PASO 2: CUANTÍAS
+    # -------------------------
+    PMG = 4177.2
 
-        PBSS = b1 * 13 * suma
+    cuant_diaria = 0.35 * 0.9 * salario_prom
+    cuant_mensual = cuant_diaria * 365 / 12
 
-        # ajustes
-        FACBI = 1.00198213882427
-        alpha = 0.02
+    b1 = max(0.9 * PMG, cuant_mensual)
 
-        PNSS = FACBI * PBSS
-        MCSS = PNSS * (1 + alpha)
+    # -------------------------
+    # PASO 3: PBSS
+    # -------------------------
+    PBSS = b1 * 13 * suma
 
-        return MCSS
-        
-    return 0
+    # -------------------------
+    # PASO 4: AJUSTES
+    # -------------------------
+    FACBI = 1.00198213882427
+    alpha = 0.02
+
+    PNSS = FACBI * PBSS
+    MCSS = PNSS * (1 + alpha)
+
+    return MCSS
 # -------------------------
 # Probabilidad hijo activo
 # -------------------------
