@@ -218,7 +218,7 @@ if sum(salarios) == 0:
 if st.button("🔄 Limpiar cache"):
             st.cache_data.clear()
 
-        st.write("FORZAR RECARGA V2")
+st.write("FORZAR RECARGA V2")
 # -------------------------
 # RESULTADOS
 # -------------------------
