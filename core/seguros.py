@@ -308,8 +308,8 @@ def calcular_monto_constitutivo(
     tabla_inv,
     tabla_act,
     tabla_desercion,
-    edades_asc=edades_asc,
-    sexos_asc=sexos_asc,
+    edades_asc,
+    sexos_asc,
 ):
 
     # =========================
