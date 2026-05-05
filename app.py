@@ -215,7 +215,10 @@ if tiene_conyuge and edad_conyuge is not None:
 if sum(salarios) == 0:
     errores.append("No has ingresado salarios")
 
+if st.button("🔄 Limpiar cache"):
+            st.cache_data.clear()
 
+        st.write("FORZAR RECARGA V2")
 # -------------------------
 # RESULTADOS
 # -------------------------
@@ -248,10 +251,6 @@ if st.button("Calcular monto constitutivo"):
             df_desercion=tabla_desercion
         )
         st.write("PBSS calculado:", resultado_pbss)
-        if st.button("🔄 Limpiar cache"):
-            st.cache_data.clear()
-
-        st.write("FORZAR RECARGA V2")
 
         st.subheader("Resultados del Cálculo")
         col1, col2 = st.columns(2)
