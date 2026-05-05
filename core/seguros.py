@@ -266,5 +266,5 @@ def pbss_con_hijos(
 
         suma += termino
 
-    return b2_func(3, cuant_mens)
+    return b1_func(2, cuant_mens)
     #(13 / 12) * a12 * suma
