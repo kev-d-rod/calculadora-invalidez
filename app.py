@@ -7,7 +7,7 @@
 import streamlit as st
 import pandas as pd
 from core.inflacion import actualizar_salarios
-from core.seguros import calcular_monto_constitutivo
+from core.seguros import pbss_con_hijos
 from core.probabilidades import calcular_mcsi
 
 @st.cache_data
@@ -229,7 +229,7 @@ if st.button("Calcular monto constitutivo"):
             st.error(e)
 
     else:
-        resultado_pbss = calcular_monto_constitutivo(
+        resultado_pbss = pbss_con_hijos(
             edad=edad,
             conyuge=conyuge,
             hijos=hijos,
