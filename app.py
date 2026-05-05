@@ -22,7 +22,7 @@ tabla_inv, tabla_act, inpc, tabla_desercion = cargar_datos()
 
 st.set_page_config(page_title="Monto Constitutivo.", layout="centered")
 
-st.title(" Calculadora de Monto Constitutivo (Invalidez)")
+st.title(" Calculadora de Monto Constitutivo (Invalidez Y Sobrevivencia)")
 
 # -------------------------
 # DATOS GENERALES
@@ -218,7 +218,6 @@ if sum(salarios) == 0:
 if st.button("🔄 Limpiar cache"):
             st.cache_data.clear()
 
-st.write("FORZAR RECARGA V2")
 # -------------------------
 # RESULTADOS
 # -------------------------
