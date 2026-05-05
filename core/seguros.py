@@ -163,15 +163,8 @@ def pbss_con_hijos(
         for j in range(num_hijos + 1)
     }
 
-    sumab1 = np.sum([
-        (np.array(j_vectores[j]) * b1_vals[j]).round(0)
-        for j in range(num_hijos + 1)
-    ], axis=0)
-
-    sumab2 = np.sum([
-        (np.array(j_vectores[j]) * b2_vals[j]).round(0)
-        for j in range(num_hijos + 1)
-    ], axis=0)
+    sumab1 = np.full_like(factor_base, cuant_mens)
+    sumab2 = np.full_like(factor_base, cuant_mens)
 
     # =========================
     # 7. CÓNYUGE
