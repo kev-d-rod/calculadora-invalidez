@@ -18,6 +18,7 @@ def pbss_invalidez(
     lx_inv,
     lx_hombres,
     lx_mujeres,
+    b1,
     i=0.035
 ):
 
