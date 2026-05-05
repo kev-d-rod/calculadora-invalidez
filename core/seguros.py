@@ -85,48 +85,19 @@ def calcular_monto_constitutivo(
             x=edad,
             y=conyuge["edad"],
             sexo_conyuge=conyuge["sexo"],
-            # aquí tus lx como ya los tienes
-        )
-
-    # -------------------------
-    # cuantías
-    # -------------------------
-    PMG = 4177.2
-
-    cuant_diaria = 0.35 * 0.9 * salario_prom
-    cuant_mensual = cuant_diaria * 365 / 12
-
-    b1 = max(0.9 * PMG, cuant_mensual)
-
-    # -------------------------
-    # PBSS (solo con cónyuge por ahora)
-    # -------------------------
-    if conyuge:
-        suma = pbss_invalidez(
-            x=edad,
-            y=conyuge["edad"],
-            sexo_conyuge=conyuge["sexo"],
             lx_inv=lx_inv,
             lx_hombres=lx_h,
             lx_mujeres=lx_m,
             b1=1
+            # aquí tus lx como ya los tienes
         )
-
-        PBSS = b1 * 13 * suma
-
-        FACBI = 1.00198213882427
-        alpha = 0.02
-
-        PNSS = FACBI * PBSS
-        MCSS = PNSS * (1 + alpha)
-
-        return MCSS
 
     return 0
 # -------------------------
 # Probabilidad hijo activo
 # -------------------------
-def prob_hijo_activo(k, edad_hijo, lx_h, lx_m, edades_act, tabla_desercion):
+def prob_hijo_activo(k, hijo, lx_h, lx_m, edades_act, tabla_desercion):
+
 
     edad_hijo = hijo["edad"]
     sexo = hijo["sexo"].lower()
@@ -141,11 +112,13 @@ def prob_hijo_activo(k, edad_hijo, lx_h, lx_m, edades_act, tabla_desercion):
     idx_0 = np.where(edades_act == edad_hijo)[0][0]
     idx_k = idx_0 + k
 
-    if idx_k >= len(lx_act):
-        return 0.0
+    if sexo == "hombre":
+        lx = lx_h
+    else:
+        lx = lx_m
 
-    # supervivencia
-    kp = lx_act[idx_k] / lx_act[idx_0]
+    if idx_k >= len(lx):
+    kp = lx[idx_k] / lx[idx_0]
 
     # menor de 16 → solo supervivencia
     if edad_k < 16:
@@ -172,7 +145,7 @@ def distribucion_hijos_activos(k, hijos, lx_h, lx_m, edades_act, tabla_desercion
     for hijo in hijos:
         p = prob_hijo_activo(
             k,
-            hijo["edad"],
+            hijo,
             lx_h,
             lx_m,
             edades_act,
@@ -188,11 +161,11 @@ def distribucion_hijos_activos(k, hijos, lx_h, lx_m, edades_act, tabla_desercion
 # -------------------------
 # Funciones b1 y b2
 # -------------------------
-def b1(j, cuant_mens):
+def b1_func(j, cuant_mens):
     return min(0.9 + j * 0.2, 1) * cuant_mens
 
 
-def b2(j, cuant_mens):
+def b2_func(j, cuant_mens):
     return min(j * 0.3, 1) * cuant_mens
 
 
@@ -266,7 +239,8 @@ def pbss_con_hijos(
         dist = distribucion_hijos_activos(
             k,
             hijos,
-            lx_h,  # usamos tabla general
+            lx_h,
+            lx_m,
             edades_act,
             tabla_desercion
         )
@@ -277,8 +251,8 @@ def pbss_con_hijos(
 
         for j in range(len(dist)):
             pj = dist[j]
-            suma_b1 += pj * b1(j, cuant_mens)
-            suma_b2 += pj * b2(j, cuant_mens)
+            suma_b1 += pj * b1_func(j, cuant_mens)
+            suma_b2 += pj * b2_func(j, cuant_mens)
 
         termino = (
             (1 - kpx_inv)
