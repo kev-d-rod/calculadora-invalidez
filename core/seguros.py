@@ -73,7 +73,9 @@ def pbss_con_hijos(
 
     # CLAVE PBSS
 
-    factor_base = kpx_inv * vk
+    qxk = kpx_inv[:-1] - kpx_inv[1:]
+    vk = (v ** (np.arange(len(kpx_inv)) + 1))[:-1]
+    factor_muerte = qxk * vk
 
     # =========================
     # 2. CUANTÍA
@@ -155,16 +157,26 @@ def pbss_con_hijos(
     # =========================
     # 6. ARMAR SUMAS b1 y b2
     # =========================
-    j_vectores = {
-        j: [
-            prob_combinada[k][j] if j < len(prob_combinada[k]) else 0.0
-            for k in range(max_k)
-        ]
-        for j in range(num_hijos + 1)
-    }
 
-    sumab1 = np.full_like(factor_base, cuant_mens)
-    sumab2 = np.full_like(factor_base, cuant_mens)
+    K = len(factor_muerte)
+
+    sumab1 = np.zeros(K)
+    sumab2 = np.zeros(K)
+
+    for k in range(K):
+
+        dist = prob_combinada[k] if k in prob_combinada else np.array([1.0])
+
+        s1 = 0.0
+        s2 = 0.0
+
+        for j in range(len(dist)):
+            pj = dist[j]
+            s1 += pj * b1_vals[j]
+            s2 += pj * b2_vals[j]
+
+        sumab1[k] = s1
+        sumab2[k] = s2
 
     # =========================
     # 7. CÓNYUGE
