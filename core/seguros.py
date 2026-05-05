@@ -109,7 +109,7 @@ def prob_hijo_activo(k, hijo, lx_h, lx_m, edades_act, tabla_desercion):
         return 0.0
 
     # índice base
-    idx_0 = np.where(edades_act == edad_hijo)[0][0]
+    idx_0 = int(edad_hijo)
     idx_k = idx_0 + k
 
     if sexo == "hombre":
@@ -127,7 +127,7 @@ def prob_hijo_activo(k, hijo, lx_h, lx_m, edades_act, tabla_desercion):
 
     # entre 16 y 25 → incluye deserción
     qd = tabla_desercion.loc[
-        tabla_desercion["Edad"] == edad_k, "qx (d)"
+        tabla_desercion["Edad"] == int(edad_k), "qx (d)"
     ].values
 
     qd = qd[0] if len(qd) > 0 else 0
@@ -266,5 +266,5 @@ def pbss_con_hijos(
 
         suma += termino
 
-    return (13 / 12) * a12 * suma * (1 + 0.01 + 0.02)
+    return (13 / 12) * a12 * suma
 
