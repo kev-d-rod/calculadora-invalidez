@@ -41,6 +41,7 @@ def pbss_invalidez(
 def calcular_monto_constitutivo(
     edad,
     conyuge,
+    hijos,
     salarios_actualizados,
     tabla_inv,
     tabla_act,
@@ -86,7 +87,7 @@ def calcular_monto_constitutivo(
             sexo_conyuge=conyuge["sexo"],
             # aquí tus lx como ya los tienes
         )
-        
+
     # -------------------------
     # cuantías
     # -------------------------
