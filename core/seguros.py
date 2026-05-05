@@ -21,65 +21,113 @@ def pbss_asc(
     i=0.035
 ):
     """
-    Calcula la Prima Básica del Seguro Social (PBSS) para inválido con ascendientes.
-
-    Fórmula: PBSX = sum_{j} A^{(IV)}_{x, z_j}
-    donde A^{(IV)}_{x,z} = 0.2 * 13 * sum_{k=0}^{omega-z} (1 - kpx_inv) * V^k * kp_z * (1 + INC)
+    Calcula el Monto Constitutivo del Seguro de Sobrevivencia (MCSS)
+    para un inválido con ascendientes (padres).
+    
+    Fórmula:
+    PBSS_{x,z1,z2} = Σ A^{(IV)}_{x,zj}
+    A^{(IV)}_{x,z} = 0.2 × 13 × Σ_{k} (1 - kpx_inv) × V^k × kp_z
+    
+    PNSS = CB_IV_mensual × FACBI × PBSS
+    MCSS = PNSS × (1 + α)
+    
+    Parámetros:
+    - x: edad del inválido
+    - edades_asc: lista de edades de los ascendientes
+    - sexos_asc: lista de sexos ('hombre' o 'mujer')
+    - salario_prom: salario promedio del inválido
+    - tabla_inv: DataFrame con columnas 'edad' y 'qx' para inválidos
+    - tabla_act: DataFrame con columnas 'Edad', 'Hombres qx', 'Mujeres qx'
+    - i: tasa de interés (default 3.5%)
     """
-    # =========================
-    # 1. Vector de supervivencia del inválido (kpx_inv)
-    # =========================
+    
+    # ============================================================
+    # 1. CALCULAR CBIV MENSUAL
+    # ============================================================
+    cbiv_diario = salario_prom * 0.35
+    cbiv_mensual = cbiv_diario * (365 / 12)
+    
+    # ============================================================
+    # 2. VECTOR DE SUPERVIVENCIA DEL INVÁLIDO
+    # ============================================================
     qx_inv = tabla_inv["qx"].values
+    edad_inv = tabla_inv["edad"].values
+    
     px_inv = 1.0 - qx_inv
     kpx_inv = np.cumprod(px_inv)
-    kpx_inv = np.insert(kpx_inv, 0, 1.0)[:-1]  # kpx para k=0,1,2,...
-
-    idx_x = np.where(tabla_inv["edad"].values == x)[0][0]
-    kpx_inv_desde_x = kpx_inv[idx_x:]  # {}_k p_x^{Inv} para k=0,1,...
-
-    # Probabilidad de muerte ACUMULADA: 1 - {}_k p_x^{Inv}
-    mort_acum = 1.0 - kpx_inv_desde_x
-
-    # =========================
-    # 2. Factor de descuento V^k
-    # =========================
-    max_k = len(mort_acum)
-    k = np.arange(max_k)
-    Vk = (1 / (1 + i)) ** k
-
-    # =========================
-    # 3. Para CADA ascendiente calcular A^{(IV)}_{x,z}
-    # =========================
-    sumas_actuariales = []
-
+    kpx_inv = np.insert(kpx_inv, 0, 1.0)[:-1]  # kpx[0]=1, kpx[1]=1px, ...
+    
+    # Encontrar el índice correspondiente a la edad x
+    idx_x = np.where(edad_inv == x)[0]
+    if len(idx_x) == 0:
+        raise ValueError(f"Edad {x} no encontrada en tabla de inválidos")
+    idx_x = idx_x[0]
+    
+    # kpx_inv desde edad x en adelante
+    kpx_inv_x = kpx_inv[idx_x:]
+    
+    # Probabilidad de que el inválido HAYA FALLECIDO antes de k
+    prob_fallecimiento = 1.0 - kpx_inv_x
+    
+    # ============================================================
+    # 3. FACTOR DE DESCUENTO V^k
+    # ============================================================
+    max_k = len(prob_fallecimiento)
+    k_values = np.arange(max_k)
+    v = 1.0 / (1.0 + i)
+    Vk = v ** k_values
+    
+    # ============================================================
+    # 4. CALCULAR PBSS PARA CADA ASCENDIENTE Y SUMAR
+    # ============================================================
+    suma_total_actuarial = 0.0
+    
     for edad_asc, sexo_asc in zip(edades_asc, sexos_asc):
-        # Generar kp_z (supervivencia del ascendiente)
-        col_qx = "Mujeres qx" if sexo_asc.lower() == "mujer" else "Hombres qx"
-        kp_z = generar_kpx(tabla_act, "Edad", col_qx, edad_asc)
-
-        # Longitud mínima entre mortalidad inválido y supervivencia ascendiente
-        min_len = min(len(mort_acum), len(kp_z))
-
-        # Suma actuarial: sum_{k} (1 - kpx_inv) * V^k * kp_z
-        suma_A = np.sum(mort_acum[:min_len] * Vk[:min_len] * kp_z[:min_len])
-
-        sumas_actuariales.append(suma_A)
-
-    # =========================
-    # 4. PBSS base: 0.2 * 13 * suma de A^{(IV)}
-    # =========================
-    PBSS_base = 0.2 * 13 * np.sum(sumas_actuariales)
-
-    # =========================
-    # 5. Ajustes con FACBI e incremento adicional (INC)
-    # =========================
+        # Seleccionar columna de mortalidad según sexo
+        if sexo_asc.lower() == "mujer":
+            col_qx = "Mujeres qx"
+        elif sexo_asc.lower() == "hombre":
+            col_qx = "Hombres qx"
+        else:
+            raise ValueError(f"Sexo no reconocido: {sexo_asc}")
+        
+        # Generar vector de supervivencia del ascendiente
+        kp_asc = generar_kpx(tabla_act, "Edad", col_qx, edad_asc)
+        
+        if len(kp_asc) == 0:
+            continue  # Si no hay datos, asumimos que no hay beneficio
+        
+        # Longitud mínima entre los vectores
+        min_len = min(len(prob_fallecimiento), len(kp_asc))
+        
+        # Suma actuarial: Σ (1 - kpx_inv) × V^k × kp_asc
+        suma_actuarial = np.sum(
+            prob_fallecimiento[:min_len] * 
+            Vk[:min_len] * 
+            kp_asc[:min_len]
+        )
+        
+        suma_total_actuarial += suma_actuarial
+    
+    # ============================================================
+    # 5. CALCULAR PBSS
+    # ============================================================
+    # 0.2 = 20% del salario
+    # 13 = 13 pagos al año (12 mensualidades + aguinaldo)
+    PBSS = 0.2 * 13 * suma_total_actuarial
+    
+    # ============================================================
+    # 6. CALCULAR PNSS
+    # ============================================================
     FACBI = 1.00198213882427
+    PNSS = cbiv_mensual * FACBI * PBSS
+    
+    # ============================================================
+    # 7. CALCULAR MCSS
+    # ============================================================
     alpha = 0.02
-
-    PBSS_con_inc = PBSS_base * (1 + 0.02)      # equivalente al (1+INC) de la fórmula
-    PNSS = PBSS_con_inc * FACBI
-    MCSS = PNSS * (1 + alpha)
-
+    MCSS = PNSS * (1.0 + alpha)
+    
     return MCSS
 
 def pbss_invalidez(
