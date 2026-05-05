@@ -231,7 +231,8 @@ if st.button("Calcular monto constitutivo"):
             conyuge=conyuge,
             salarios_actualizados=salarios_actualizados,
             tabla_inv=tabla_inv,
-            tabla_act=tabla_act
+            tabla_act=tabla_act,
+            tabla_desercion=tabla_desercion
         )
 
         resultado_pbsi = calcular_mcsi(
