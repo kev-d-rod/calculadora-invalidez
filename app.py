@@ -229,7 +229,7 @@ if st.button("Calcular monto constitutivo"):
         resultado_pbss = calcular_monto_constitutivo(
             edad=edad,
             conyuge=conyuge,
-            hijos=hijos
+            hijos=hijos,
             salarios_actualizados=salarios_actualizados,
             tabla_inv=tabla_inv,
             tabla_act=tabla_act,
