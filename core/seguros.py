@@ -11,6 +11,37 @@ def generar_kpx(df, col_edad, col_qx, edad_inicio):
     kpx = np.insert(kpx, 0, 1.0)[:-1]
     return kpx
 
+def pbss_invalidez(
+    x,
+    y,
+    sexo_conyuge,
+    lx_inv,
+    lx_hombres,
+    lx_mujeres,
+    i=0.035
+):
+
+    if sexo_conyuge.lower() == "hombre":
+        lx_cony = lx_hombres
+    else:
+        lx_cony = lx_mujeres
+
+    edad_min = 15
+    idx_x = x - edad_min
+    idx_y = y
+
+    max_k = min(len(lx_inv) - idx_x, len(lx_cony) - idx_y)
+    k = np.arange(0, max_k)
+
+    kpx_inv = lx_inv[idx_x + k] / lx_inv[idx_x]
+    kpy = lx_cony[idx_y + k] / lx_cony[idx_y]
+
+    v = 1 / (1 + i)
+    vk = v ** k
+
+    suma = np.sum((1 - kpx_inv) * kpy * vk)
+    return suma
+
 def pbss_con_hijos(
     x,
     y,
