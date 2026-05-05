@@ -394,14 +394,14 @@ def calcular_monto_constitutivo(
     # 5.
     elif (not conyuge) and len(hijos) == 0 and len(edades_asc) > 0:
 
-    return pbss_asc(
-        x=edad,
-        edades_asc=edades_asc,
-        sexos_asc=sexos_asc,
-        salario_prom=salario_prom,
-        tabla_inv=tabla_inv,
-        tabla_act=tabla_act
-    )
-    # =========================
+        return pbss_asc(
+            x=edad,
+            edades_asc=edades_asc,
+            sexos_asc=sexos_asc,
+            salario_prom=salario_prom,
+            tabla_inv=tabla_inv,
+            tabla_act=tabla_act
+        )
+        # =========================
     else:
         return 0.0
