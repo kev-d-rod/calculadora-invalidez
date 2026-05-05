@@ -1,195 +1,15 @@
 import numpy as np
-from core.tablas import construir_lx_array
+import pandas as pd
 
+def generar_kpx(df, col_edad, col_qx, edad_inicio):
+    df_filtrado = df[df[col_edad] >= edad_inicio].copy().reset_index(drop=True)
+    qx = df_filtrado[col_qx].values
+    px = 1.0 - qx
+    
+    kpx = np.cumprod(px)
+    kpx = np.insert(kpx, 0, 1.0)[:-1]
+    return kpx
 
-def pbss_invalidez(
-    x,
-    y,
-    sexo_conyuge,
-    lx_inv,
-    lx_hombres,
-    lx_mujeres,
-    i=0.035
-):
-
-    if sexo_conyuge.lower() == "hombre":
-        lx_cony = lx_hombres
-    else:
-        lx_cony = lx_mujeres
-
-    edad_min = 15
-    idx_x = x - edad_min
-    idx_y = y
-
-    max_k = min(len(lx_inv) - idx_x, len(lx_cony) - idx_y)
-    k = np.arange(0, max_k)
-
-    kpx_inv = lx_inv[idx_x + k] / lx_inv[idx_x]
-    kpy = lx_cony[idx_y + k] / lx_cony[idx_y]
-
-    v = 1 / (1 + i)
-    vk = v ** k
-
-    suma = np.sum((1 - kpx_inv) * kpy * vk)
-    return suma
-
-
-def calcular_monto_constitutivo(
-    edad,
-    conyuge,
-    hijos,
-    salarios_actualizados,
-    tabla_inv,
-    tabla_act,
-    tabla_desercion
-):
-
-    # -------------------------
-    # lx
-    # -------------------------
-    lx_inv = construir_lx_array(tabla_inv["qx"].values)
-    lx_h = construir_lx_array(tabla_act["Hombres qx"].values)
-    lx_m = construir_lx_array(tabla_act["Mujeres qx"].values)
-
-    # -------------------------
-    # salario promedio
-    # -------------------------
-    salario_prom = sum(salarios_actualizados) / len(salarios_actualizados)
-
-    # -------------------------
-    # PASO 1: SUMA ACTUARIAL
-    # -------------------------
-    if conyuge and len(hijos) > 0:
-
-        suma = pbss_con_hijos(
-            x=edad,
-            y=conyuge,
-            hijos=hijos,
-            salario_prom=salario_prom,
-            tabla_inv=tabla_inv,
-            tabla_act=tabla_act,
-            tabla_desercion=tabla_desercion
-        )
-
-    elif conyuge:
-
-        suma = pbss_invalidez(
-            x=edad,
-            y=conyuge["edad"],
-            sexo_conyuge=conyuge["sexo"],
-            lx_inv=lx_inv,
-            lx_hombres=lx_h,
-            lx_mujeres=lx_m
-        )
-
-    else:
-        return 0
-
-    # -------------------------
-    # PASO 2: CUANTÍAS
-    # -------------------------
-    PMG = 4177.2
-
-    cuant_diaria = 0.35 * 0.9 * salario_prom
-    cuant_mensual = cuant_diaria * 365 / 12
-
-    b1 = max(0.9 * PMG, cuant_mensual)
-
-    # -------------------------
-    # PASO 3: PBSS
-    # -------------------------
-    PBSS = b1 * 13 * suma
-
-    # -------------------------
-    # PASO 4: AJUSTES
-    # -------------------------
-    FACBI = 1.00198213882427
-    alpha = 0.02
-
-    PNSS = FACBI * PBSS
-    MCSS = PNSS * (1 + alpha)
-
-    return MCSS
-# -------------------------
-# Probabilidad hijo activo
-# -------------------------
-def prob_hijo_activo(k, hijo, lx_h, lx_m, edades_act, tabla_desercion):
-
-
-    edad_hijo = hijo["edad"]
-    sexo = hijo["sexo"].lower()
-
-    edad_k = edad_hijo + k
-
-    # Mayor a 25 → ya no es beneficiario
-    if edad_k > 25:
-        return 0.0
-
-    # índice base
-    idx_0 = int(edad_hijo)
-    idx_k = idx_0 + k
-
-    if sexo == "hombre":
-        lx = lx_h
-    else:
-        lx = lx_m
-
-    if idx_k >= len(lx):
-        return 0.0
-    kp = lx[idx_k] / lx[idx_0]
-
-    # menor de 16 → solo supervivencia
-    if edad_k < 16:
-        return kp
-
-    # entre 16 y 25 → incluye deserción
-    qd = tabla_desercion.loc[
-        tabla_desercion["Edad"] == int(edad_k), "qx (d)"
-    ].values
-
-    qd = qd[0] if len(qd) > 0 else 0
-
-    return kp * (1 - qd)
-
-
-# -------------------------
-# Convolución hijos
-# -------------------------
-def distribucion_hijos_activos(k, hijos, lx_h, lx_m, edades_act, tabla_desercion):
-
-    # empezamos con P(0 hijos activos) = 1
-    dist = np.array([1.0])
-
-    for hijo in hijos:
-        p = prob_hijo_activo(
-            k,
-            hijo,
-            lx_h,
-            lx_m,
-            edades_act,
-            tabla_desercion
-        )
-
-        # convolución Bernoulli: [1-p, p]
-        dist = np.convolve(dist, [1 - p, p])
-
-    return dist  # tamaño = n+1
-
-
-# -------------------------
-# Funciones b1 y b2
-# -------------------------
-def b1_func(j, cuant_mens):
-    return min(0.9 + j * 0.2, 1) * cuant_mens
-
-
-def b2_func(j, cuant_mens):
-    return min(j * 0.3, 1) * cuant_mens
-
-
-# -------------------------
-# PBSS COMPLETA
-# -------------------------
 def pbss_con_hijos(
     x,
     y,
@@ -201,87 +21,153 @@ def pbss_con_hijos(
     i=0.035
 ):
 
-    # -------------------------
-    # lx
-    # -------------------------
-    edades_inv = tabla_inv["edad"].values
+    # =========================
+    # 1. SUPERVIVENCIA INVÁLIDO
+    # =========================
     qx_inv = tabla_inv["qx"].values
+    edades_inv = tabla_inv["edad"].values
 
-    edades_act = tabla_act["Edad"].values
-    qx_h = tabla_act["Hombres qx"].values
-    qx_m = tabla_act["Mujeres qx"].values
+    px_inv = 1 - qx_inv
+    kpx_inv = np.cumprod(px_inv)
+    kpx_inv = np.insert(kpx_inv, 0, 1.0)[:-1]
 
-    lx_inv = construir_lx_array(qx_inv)
-    lx_h = construir_lx_array(qx_h)
-    lx_m = construir_lx_array(qx_m)
-
-    # -------------------------
-    # lx cónyuge
-    # -------------------------
-    if y["sexo"].lower() == "hombre":
-        lx_cony = lx_h
-    else:
-        lx_cony = lx_m
-
-    # índices
     idx_x = np.where(edades_inv == x)[0][0]
-    idx_y = np.where(edades_act == y["edad"])[0][0]
+    kpx_inv = kpx_inv[idx_x:]
 
-    # -------------------------
-    # cuantía
-    # -------------------------
+    k_array = np.arange(len(kpx_inv))
+    v = 1 / (1 + i)
+    vk = v ** k_array
+
+    # 🔥 CLAVE PBSS
+    factor_muerte = (1 - kpx_inv) * vk
+
+    # =========================
+    # 2. CUANTÍA
+    # =========================
     cbiv = salario_prom * 0.35
     cbiv_mens = cbiv * (365 / 12)
 
     PMG = 4177.2
     cuant_mens = max(cbiv_mens, PMG)
 
-    # -------------------------
-    # constantes
-    # -------------------------
-    v = 1 / (1 + i)
-    a12 = 11.81
+    # =========================
+    # 3. b1(j) y b2(j)
+    # =========================
+    def b1_j(j):
+        return min(0.9 + j * 0.2, 1) * cuant_mens
 
-    # máximo k
-    max_k = min(len(lx_inv) - idx_x, len(lx_cony) - idx_y)
+    def b2_j(j):
+        return min(j * 0.3, 1) * cuant_mens
 
-    suma = 0.0
+    num_hijos = len(hijos)
+
+    b1_vals = [b1_j(j) for j in range(num_hijos + 1)]
+    b2_vals = [b2_j(j) for j in range(num_hijos + 1)]
+
+    # =========================
+    # 4. VECTORES HIJOS (IGUAL QUE MCSI)
+    # =========================
+    vectores_kph = []
+
+    for hijo in hijos:
+        col_qx = "Mujeres qx" if hijo["sexo"].lower() == "mujer" else "Hombres qx"
+
+        df_h = tabla_act[tabla_act["Edad"] >= hijo["edad"]].copy().reset_index(drop=True)
+
+        px = 1 - df_h[col_qx].values
+        edades = df_h["Edad"].values
+
+        kpx_vector = [1.0]
+        prob_acum = 1.0
+
+        for u, edad_actual in enumerate(edades[:-1]):
+            prob_acum *= px[u]
+
+            if edad_actual + 1 < 16:
+                kpx_vector.append(prob_acum)
+
+            elif 16 <= edad_actual + 1 < 25:
+                try:
+                    qd = tabla_desercion.loc[
+                        tabla_desercion["Edad"] == (edad_actual + 1),
+                        "qx (d)"
+                    ].values[0]
+                    prob_acum *= (1 - qd)
+                except:
+                    pass
+                kpx_vector.append(prob_acum)
+
+            else:
+                kpx_vector.append(0.0)
+
+        vectores_kph.append(np.array(kpx_vector))
+
+    # =========================
+    # 5. CONVOLUCIONES (IGUAL QUE MCSI)
+    # =========================
+    max_k = max(len(v) for v in vectores_kph)
+
+    prob_combinada = {}
 
     for k in range(max_k):
+        pk = [v[k] if k < len(v) else 0.0 for v in vectores_kph]
 
-        # probabilidades base
-        kpx_inv = lx_inv[idx_x + k] / lx_inv[idx_x]
-        kpy = lx_cony[idx_y + k] / lx_cony[idx_y]
+        dist = np.array([1.0])
+        for p in pk:
+            dist = np.convolve(dist, np.array([1 - p, p]))
 
-        # distribución de hijos
-        dist = distribucion_hijos_activos(
-            k,
-            hijos,
-            lx_h,
-            lx_m,
-            edades_act,
-            tabla_desercion
-        )
+        prob_combinada[k] = dist
 
-        # suma sobre j
-        suma_b1 = 0.0
-        suma_b2 = 0.0
+    # =========================
+    # 6. ARMAR SUMAS b1 y b2
+    # =========================
+    j_vectores = {
+        j: [
+            prob_combinada[k][j] if j < len(prob_combinada[k]) else 0.0
+            for k in range(max_k)
+        ]
+        for j in range(num_hijos + 1)
+    }
 
-        for j in range(len(dist)):
-            pj = dist[j]
-            suma_b1 += pj * b1_func(j, cuant_mens)
-            suma_b2 += pj * b2_func(j, cuant_mens)
+    sumab1 = np.sum([
+        np.array(j_vectores[j]) * b1_vals[j]
+        for j in range(num_hijos + 1)
+    ], axis=0)
 
-        termino = (
-            (1 - kpx_inv)
-            * (v ** k)
-            * (
-                kpy * suma_b1
-                + (1 - kpy) * suma_b2
-            )
-        )
+    sumab2 = np.sum([
+        np.array(j_vectores[j]) * b2_vals[j]
+        for j in range(num_hijos + 1)
+    ], axis=0)
 
-        suma += termino
+    # =========================
+    # 7. CÓNYUGE
+    # =========================
+    col_qx_cony = "Mujeres qx" if y["sexo"].lower() == "mujer" else "Hombres qx"
 
-    return suma
+    kpy = generar_kpx(tabla_act, "Edad", col_qx_cony, y["edad"])
 
+    # =========================
+    # 8. COMBINACIÓN FINAL
+    # =========================
+    min_len = min(len(kpy), len(sumab1), len(factor_muerte))
+
+    total = (
+        kpy[:min_len] * sumab1[:min_len]
+        + (1 - kpy[:min_len]) * sumab2[:min_len]
+    )
+
+    # 🔥 aquí está la magia
+    suma = np.sum(total * factor_muerte[:min_len])
+
+    # =========================
+    # 9. FACTORES FINALES
+    # =========================
+    PBSS = 11.81 * suma
+
+    FACBI = 1.00198213882427
+    alpha = 0.02
+
+    PNSS = FACBI * PBSS
+    MCSS = PNSS * (1 + alpha)
+
+    return MCSS
