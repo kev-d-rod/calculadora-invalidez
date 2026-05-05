@@ -11,6 +11,97 @@ def generar_kpx(df, col_edad, col_qx, edad_inicio):
     kpx = np.insert(kpx, 0, 1.0)[:-1]
     return kpx
 
+def pbss_asc(
+    x,
+    edades_asc,
+    sexos_asc,
+    salario_prom,
+    tabla_inv,
+    tabla_act,
+    i=0.035
+):
+
+    # =========================
+    # 1. INVÁLIDO (MUERTE)
+    # =========================
+    qx_inv = tabla_inv["qx"].values
+    edades_inv = tabla_inv["edad"].values
+
+    px_inv = 1 - qx_inv
+    kpx_inv = np.cumprod(px_inv)
+    kpx_inv = np.insert(kpx_inv, 0, 1.0)[:-1]
+
+    idx_x = np.where(edades_inv == x)[0][0]
+    kpx_inv = kpx_inv[idx_x:]
+
+    #  muerte exacta en k
+    qxk = kpx_inv[:-1] - kpx_inv[1:]
+
+    k = np.arange(len(qxk))
+    v = 1 / (1 + i)
+    vk = v ** k
+
+    factor = qxk * vk  # 🔥 correcto
+
+    # =========================
+    # 2. CBIV
+    # =========================
+    cbiv = salario_prom * 0.35
+    cbiv_mens = cbiv * (365 / 12)
+
+    # =========================
+    # 3. PROB PADRES
+    # =========================
+    vectores = []
+
+    for edad, sexo in zip(edades_asc, sexos_asc):
+
+        col = "Mujeres qx" if sexo.lower() == "mujer" else "Hombres qx"
+
+        kpx = generar_kpx(tabla_act, "Edad", col, edad)
+
+        vectores.append(kpx)
+
+    # =========================
+    # 4. SUMA ACTUARIAL
+    # =========================
+    suma_total = 0.0
+
+    max_k = len(factor)
+
+    if len(vectores) == 1:
+        kp = vectores[0]
+
+        for k in range(max_k):
+            p = kp[k] if k < len(kp) else 0.0
+            suma_total += factor[k] * p
+
+    elif len(vectores) == 2:
+        kp1, kp2 = vectores
+
+        for k in range(max_k):
+            p1 = kp1[k] if k < len(kp1) else 0.0
+            p2 = kp2[k] if k < len(kp2) else 0.0
+
+            # prob al menos uno vivo (como en tu fórmula separada)
+            suma_total += factor[k] * (p1 + p2)
+
+    # =========================
+    # 5. PBSS
+    # =========================
+    PBSS = 0.2 * 13 * suma_total
+
+    # =========================
+    # 6. PNSS y MCSS
+    # =========================
+    FACBI = 1.00198213882427
+    alpha = 0.02
+
+    PNSS = cbiv_mens * FACBI * PBSS
+    MCSS = PNSS * (1 + alpha)
+
+    return MCSS
+
 def pbss_invalidez(
     x,
     y,
@@ -216,7 +307,9 @@ def calcular_monto_constitutivo(
     salarios_actualizados,
     tabla_inv,
     tabla_act,
-    tabla_desercion
+    tabla_desercion,
+    edades_asc=edades_asc,
+    sexos_asc=sexos_asc,
 ):
 
     # =========================
@@ -298,7 +391,17 @@ def calcular_monto_constitutivo(
         return MCSS
 
     # =========================
-    # 5. OTROS CASOS (no implementados)
+    # 5.
+    elif (not conyuge) and len(hijos) == 0 and len(edades_asc) > 0:
+
+    return pbss_asc(
+        x=edad,
+        edades_asc=edades_asc,
+        sexos_asc=sexos_asc,
+        salario_prom=salario_prom,
+        tabla_inv=tabla_inv,
+        tabla_act=tabla_act
+    )
     # =========================
     else:
         return 0.0
