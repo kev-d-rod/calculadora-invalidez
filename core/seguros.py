@@ -150,7 +150,7 @@ def pbss_con_hijos(
         for p in pk:
             dist = np.convolve(dist, np.array([1 - p, p]))
         if dist.sum() > 0:
-        dist = dist / dist.sum()
+            dist = dist / dist.sum()
 
         prob_combinada[k] = dist
 
