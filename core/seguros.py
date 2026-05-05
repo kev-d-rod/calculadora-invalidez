@@ -73,7 +73,10 @@ def pbss_con_hijos(
 
     # CLAVE PBSS
 
-    factor_base = kpx_inv * vk
+    qxk = kpx_inv[:-1] - kpx_inv[1:]
+    vk = vk[:-1]
+
+    factor_muerte = qxk * vk
 
     # =========================
     # 2. CUANTÍA
@@ -183,7 +186,7 @@ def pbss_con_hijos(
     # =========================
     # 8. COMBINACIÓN FINAL
     # =========================
-    min_len = min(len(kpy), len(sumab1), len(factor_base))
+    min_len = min(len(kpy), len(sumab1), len(factor_muerte))
 
     total = (
         kpy[:min_len] * sumab1[:min_len]
@@ -191,7 +194,7 @@ def pbss_con_hijos(
     )
 
     #  aquí está la magia
-    suma = np.sum(total * factor_base[:min_len])
+    suma = np.sum(total * factor_muerte[:min_len])
 
     # =========================
     # 9. FACTORES FINALES
