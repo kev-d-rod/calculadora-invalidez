@@ -183,7 +183,7 @@ def pbss_con_hijos(
     # =========================
     # 8. COMBINACIÓN FINAL
     # =========================
-    min_len = min(len(kpy), len(sumab1), len(factor_muerte))
+    min_len = min(len(kpy), len(sumab1), len(factor_base))
 
     total = (
         kpy[:min_len] * sumab1[:min_len]
