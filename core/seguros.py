@@ -20,84 +20,64 @@ def pbss_asc(
     tabla_act,
     i=0.035
 ):
+    """
+    Calcula la Prima Básica del Seguro Social (PBSS) para inválido con ascendientes.
 
+    Fórmula: PBSX = sum_{j} A^{(IV)}_{x, z_j}
+    donde A^{(IV)}_{x,z} = 0.2 * 13 * sum_{k=0}^{omega-z} (1 - kpx_inv) * V^k * kp_z * (1 + INC)
+    """
     # =========================
-    # 1. INVÁLIDO (MUERTE)
+    # 1. Vector de supervivencia del inválido (kpx_inv)
     # =========================
     qx_inv = tabla_inv["qx"].values
-    edades_inv = tabla_inv["edad"].values
-
-    px_inv = 1 - qx_inv
+    px_inv = 1.0 - qx_inv
     kpx_inv = np.cumprod(px_inv)
-    kpx_inv = np.insert(kpx_inv, 0, 1.0)[:-1]
+    kpx_inv = np.insert(kpx_inv, 0, 1.0)[:-1]  # kpx para k=0,1,2,...
 
-    idx_x = np.where(edades_inv == x)[0][0]
-    kpx_inv = kpx_inv[idx_x:]
+    idx_x = np.where(tabla_inv["edad"].values == x)[0][0]
+    kpx_inv_desde_x = kpx_inv[idx_x:]  # {}_k p_x^{Inv} para k=0,1,...
 
-    #  muerte exacta en k
-    qxk = kpx_inv[:-1] - kpx_inv[1:]
-
-    k = np.arange(len(qxk))
-    v = 1 / (1 + i)
-    vk = v ** k
-
-    factor = qxk * vk  # 🔥 correcto
+    # Probabilidad de muerte ACUMULADA: 1 - {}_k p_x^{Inv}
+    mort_acum = 1.0 - kpx_inv_desde_x
 
     # =========================
-    # 2. CBIV
+    # 2. Factor de descuento V^k
     # =========================
-    cbiv = salario_prom * 0.35
-    cbiv_mens = cbiv * (365 / 12)
-
-    # =========================
-    # 3. PROB PADRES
-    # =========================
-    vectores = []
-
-    for edad, sexo in zip(edades_asc, sexos_asc):
-
-        col = "Mujeres qx" if sexo.lower() == "mujer" else "Hombres qx"
-
-        kpx = generar_kpx(tabla_act, "Edad", col, edad)
-
-        vectores.append(kpx)
+    max_k = len(mort_acum)
+    k = np.arange(max_k)
+    Vk = (1 / (1 + i)) ** k
 
     # =========================
-    # 4. SUMA ACTUARIAL
+    # 3. Para CADA ascendiente calcular A^{(IV)}_{x,z}
     # =========================
-    suma_total = 0.0
+    sumas_actuariales = []
 
-    max_k = len(factor)
+    for edad_asc, sexo_asc in zip(edades_asc, sexos_asc):
+        # Generar kp_z (supervivencia del ascendiente)
+        col_qx = "Mujeres qx" if sexo_asc.lower() == "mujer" else "Hombres qx"
+        kp_z = generar_kpx(tabla_act, "Edad", col_qx, edad_asc)
 
-    if len(vectores) == 1:
-        kp = vectores[0]
+        # Longitud mínima entre mortalidad inválido y supervivencia ascendiente
+        min_len = min(len(mort_acum), len(kp_z))
 
-        for k in range(max_k):
-            p = kp[k] if k < len(kp) else 0.0
-            suma_total += factor[k] * p
+        # Suma actuarial: sum_{k} (1 - kpx_inv) * V^k * kp_z
+        suma_A = np.sum(mort_acum[:min_len] * Vk[:min_len] * kp_z[:min_len])
 
-    elif len(vectores) == 2:
-        kp1, kp2 = vectores
-
-        for k in range(max_k):
-            p1 = kp1[k] if k < len(kp1) else 0.0
-            p2 = kp2[k] if k < len(kp2) else 0.0
-
-            # prob al menos uno vivo (como en tu fórmula separada)
-            suma_total += factor[k] * (p1 + p2)
+        sumas_actuariales.append(suma_A)
 
     # =========================
-    # 5. PBSS
+    # 4. PBSS base: 0.2 * 13 * suma de A^{(IV)}
     # =========================
-    PBSS = 0.2 * 13 * suma_total
+    PBSS_base = 0.2 * 13 * np.sum(sumas_actuariales)
 
     # =========================
-    # 6. PNSS y MCSS
+    # 5. Ajustes con FACBI e incremento adicional (INC)
     # =========================
     FACBI = 1.00198213882427
     alpha = 0.02
 
-    PNSS = cbiv_mens * FACBI * PBSS
+    PBSS_con_inc = PBSS_base * (1 + 0.02)      # equivalente al (1+INC) de la fórmula
+    PNSS = PBSS_con_inc * FACBI
     MCSS = PNSS * (1 + alpha)
 
     return MCSS
