@@ -194,7 +194,7 @@ def pbss_con_hijos(
     )
 
     #  aquí está la magia
-    suma = np.sum(total * factor_muerte[:min_len])
+    suma = np.sum(total * factor_base[:min_len])
 
     # =========================
     # 9. FACTORES FINALES
