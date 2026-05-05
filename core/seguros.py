@@ -73,7 +73,7 @@ def pbss_con_hijos(
 
     # CLAVE PBSS
 
-    factor_muerte = (1 - kpx_inv) * vk
+    factor_base = kpx_inv * vk
 
     # =========================
     # 2. CUANTÍA
@@ -149,9 +149,7 @@ def pbss_con_hijos(
         dist = np.array([1.0])
         for p in pk:
             dist = np.convolve(dist, np.array([1 - p, p]))
-        if dist.sum() > 0:
-            dist = dist / dist.sum()
-
+        
         prob_combinada[k] = dist
 
     # =========================
@@ -193,7 +191,7 @@ def pbss_con_hijos(
     )
 
     #  aquí está la magia
-    suma = np.sum(total * factor_muerte[:min_len])
+    suma = np.sum(total * factor_base[:min_len])
 
     # =========================
     # 9. FACTORES FINALES
