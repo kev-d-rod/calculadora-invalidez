@@ -20,7 +20,7 @@ def cargar_datos():
 
 tabla_inv, tabla_act, inpc, tabla_desercion = cargar_datos()
 
-st.set_page_config(page_title="Monto Constitutivo", layout="centered")
+st.set_page_config(page_title="Monto Constitutivo.", layout="centered")
 
 st.title(" Calculadora de Monto Constitutivo (Invalidez)")
 
