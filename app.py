@@ -230,10 +230,10 @@ if st.button("Calcular monto constitutivo"):
 
     else:
         resultado_pbss = pbss_con_hijos(
-            edad=edad,
-            conyuge=conyuge,
+            x=edad,
+            y=conyuge,
             hijos=hijos,
-            salarios_actualizados=salarios_actualizados,
+            salario_prom=salario_prom,
             tabla_inv=tabla_inv,
             tabla_act=tabla_act,
             tabla_desercion=tabla_desercion
