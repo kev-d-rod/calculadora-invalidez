@@ -156,7 +156,7 @@ def pbss_con_hijos(
     # 6. ARMAR SUMAS b1 y b2
     # =========================
 
-    K = len(factor_muerte)
+    K = len(factor_base)
 
     sumab1 = np.zeros(K)
     sumab2 = np.zeros(K)
