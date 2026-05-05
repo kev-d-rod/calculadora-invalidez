@@ -111,8 +111,7 @@ def calcular_monto_constitutivo(
         MCSS = PNSS * (1 + alpha)
 
         return MCSS
-
-
+        
     return 0
 # -------------------------
 # Probabilidad hijo activo

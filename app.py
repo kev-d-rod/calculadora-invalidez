@@ -251,6 +251,7 @@ if st.button("Calcular monto constitutivo"):
             df_desercion=tabla_desercion
         )
         st.write("PBSS calculado:", resultado_pbss)
+        st.write("hola")
 
         st.subheader("Resultados del Cálculo")
         col1, col2 = st.columns(2)
