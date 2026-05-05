@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from core.tablas import construir_lx_array
 
 def generar_kpx(df, col_edad, col_qx, edad_inicio):
     df_filtrado = df[df[col_edad] >= edad_inicio].copy().reset_index(drop=True)
@@ -171,3 +172,97 @@ def pbss_con_hijos(
     MCSS = PNSS * (1 + alpha)
 
     return MCSS
+
+def calcular_monto_constitutivo(
+    edad,
+    conyuge,
+    hijos,
+    salarios_actualizados,
+    tabla_inv,
+    tabla_act,
+    tabla_desercion
+):
+
+    # =========================
+    # 1. PROMEDIO SALARIAL
+    # =========================
+    if len(salarios_actualizados) == 0:
+        return 0.0
+
+    salario_prom = sum(salarios_actualizados) / len(salarios_actualizados)
+
+    # =========================
+    # 2. FLAGS
+    # =========================
+    tiene_conyuge = conyuge is not None
+    tiene_hijos = len(hijos) > 0
+
+    # =========================
+    # 3. CASO: CONYUGE + HIJOS
+    # =========================
+    if tiene_conyuge and tiene_hijos:
+
+        return pbss_con_hijos(
+            x=edad,
+            y=conyuge,
+            hijos=hijos,
+            salario_prom=salario_prom,
+            tabla_inv=tabla_inv,
+            tabla_act=tabla_act,
+            tabla_desercion=tabla_desercion
+        )
+
+    # =========================
+    # 4. CASO: SOLO CONYUGE
+    # =========================
+    elif tiene_conyuge and not tiene_hijos:
+
+        # ---- lx ----
+        from core.tablas import construir_lx_array
+
+        lx_inv = construir_lx_array(tabla_inv["qx"].values)
+        lx_h = construir_lx_array(tabla_act["Hombres qx"].values)
+        lx_m = construir_lx_array(tabla_act["Mujeres qx"].values)
+
+        # ---- suma actuarial ----
+        suma = pbss_invalidez(
+            x=edad,
+            y=conyuge["edad"],
+            sexo_conyuge=conyuge["sexo"],
+            lx_inv=lx_inv,
+            lx_hombres=lx_h,
+            lx_mujeres=lx_m,
+            b1=1  # aquí solo queremos la suma
+        )
+
+        # =========================
+        # CUANTÍA (tu definición)
+        # =========================
+        PMG = 4177.2
+
+        cuant_diaria = 0.35 * 0.9 * salario_prom
+        cuant_mensual = cuant_diaria * 365 / 12
+
+        b1 = max(0.9 * PMG, cuant_mensual)
+
+        # =========================
+        # PBSS
+        # =========================
+        PBSS = b1 * 13 * suma
+
+        # =========================
+        # AJUSTES
+        # =========================
+        FACBI = 1.00198213882427
+        alpha = 0.02
+
+        PNSS = FACBI * PBSS
+        MCSS = PNSS * (1 + alpha)
+
+        return MCSS
+
+    # =========================
+    # 5. OTROS CASOS (no implementados)
+    # =========================
+    else:
+        return 0.0
