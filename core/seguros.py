@@ -115,24 +115,24 @@ def pbss_con_hijos(
         prob_acum = 1.0
 
         for u, edad_actual in enumerate(edades[:-1]):
-            prob_acum *= px[u]
 
-            if edad_actual + 1 < 16:
+            if edad_actual < 16:
                 kpx_vector.append(prob_acum)
 
-            elif 16 <= edad_actual + 1 < 25:
+            elif 16 <= edad_actual < 25:
                 try:
                     qd = tabla_desercion.loc[
-                        tabla_desercion["Edad"] == (edad_actual + 1),
+                        tabla_desercion["Edad"] == edad_actual,
                         "qx (d)"
                     ].values[0]
-                    prob_acum *= (1 - qd)
+                    kpx_vector.append(prob_acum * (1 - qd))
                 except:
-                    pass
-                kpx_vector.append(prob_acum)
+                    kpx_vector.append(prob_acum)
 
             else:
                 kpx_vector.append(0.0)
+
+            prob_acum *= px[u]
 
         vectores_kph.append(np.array(kpx_vector))
 
@@ -163,8 +163,15 @@ def pbss_con_hijos(
         for j in range(num_hijos + 1)
     }
 
-    sumab1 = np.full_like(factor_base, cuant_mens)
-    sumab2 = np.full_like(factor_base, cuant_mens)
+    sumab1 = np.sum([
+        (np.array(j_vectores[j]) * b1_vals[j]).round(0)
+        for j in range(num_hijos + 1)
+    ], axis=0)
+
+    sumab2 = np.sum([
+        (np.array(j_vectores[j]) * b2_vals[j]).round(0)
+        for j in range(num_hijos + 1)
+    ], axis=0)
 
     # =========================
     # 7. CÓNYUGE
