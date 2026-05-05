@@ -71,8 +71,10 @@ def pbss_con_hijos(
     v = 1 / (1 + i)
     vk = v ** k_array
 
-    # 🔥 CLAVE PBSS
-    factor_muerte = (1 - kpx_inv) * vk
+    # CLAVE PBSS
+
+    qx_shifted = qx_inv[idx_x:]
+    factor_muerte = kpx_inv * qx_shifted * vk
 
     # =========================
     # 2. CUANTÍA
@@ -189,7 +191,7 @@ def pbss_con_hijos(
         + (1 - kpy[:min_len]) * sumab2[:min_len]
     )
 
-    # 🔥 aquí está la magia
+    #  aquí está la magia
     suma = np.sum(total * factor_muerte[:min_len])
 
     # =========================
