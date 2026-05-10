@@ -174,25 +174,33 @@ def pbss_con_hijos(
 ):
 
     # =========================
-    # 1. SUPERVIVENCIA INVÁLIDO
+    # 1. CONSTRUIR lx Y kpx
     # =========================
-    qx_inv = tabla_inv["qx"].values
-    edades_inv = tabla_inv["edad"].values
-
-    px_inv = 1 - qx_inv
-    kpx_inv = np.cumprod(px_inv)
-    kpx_inv = np.insert(kpx_inv, 0, 1.0)[:-1]
-
-    idx_x = np.where(edades_inv == x)[0][0]
-    kpx_inv = kpx_inv[idx_x:]
-
-    k_array = np.arange(len(kpx_inv))
+    lx_inv = construir_lx_array(tabla_inv["qx"].values)
+    lx_h = construir_lx_array(tabla_act["Hombres qx"].values)
+    lx_m = construir_lx_array(tabla_act["Mujeres qx"].values)
+    
+    # Cónyuge
+    if y["sexo"].lower() == "hombre":
+        lx_cony = lx_h
+    else:
+        lx_cony = lx_m
+    
+    edad_min = tabla_inv["edad"].values[0]
+    idx_x = x - edad_min
+    idx_y = y["edad"]
+    
+    max_k = min(len(lx_inv) - idx_x, len(lx_cony) - idx_y)
+    k = np.arange(0, max_k)
+    
+    kpx_inv = lx_inv[idx_x + k] / lx_inv[idx_x]
+    kpy = lx_cony[idx_y + k] / lx_cony[idx_y]
+    
     v = 1 / (1 + i)
-    vk = v ** k_array
-
-    # CLAVE PBSS
-
-    factor_base = kpx_inv * vk
+    vk = v ** k
+    
+    # CLAVE PBSS: (1 - kpx_inv) * v^k
+    factor_base = (1 - kpx_inv) * vk
 
     # =========================
     # 2. CUANTÍA
@@ -202,7 +210,7 @@ def pbss_con_hijos(
 
     PMG = 4177.2
     cuant_mens = max(cbiv_mens, PMG)
-
+    
     # =========================
     # 3. b1(j) y b2(j)
     # =========================
@@ -216,73 +224,74 @@ def pbss_con_hijos(
 
     b1_vals = [b1_j(j) for j in range(num_hijos + 1)]
     b2_vals = [b2_j(j) for j in range(num_hijos + 1)]
-
+    
     # =========================
-    # 4. VECTORES HIJOS (IGUAL QUE MCSI)
+    # 4. VECTORES HIJOS (CORRECCIÓN FINAL)
     # =========================
     vectores_kph = []
 
     for hijo in hijos:
         col_qx = "Mujeres qx" if hijo["sexo"].lower() == "mujer" else "Hombres qx"
+        edad_inicial = hijo["edad"]
 
-        df_h = tabla_act[tabla_act["Edad"] >= hijo["edad"]].copy().reset_index(drop=True)
-
-        px = 1 - df_h[col_qx].values
+        df_h = tabla_act[tabla_act["Edad"] >= edad_inicial].copy().reset_index(drop=True)
+        px = 1 - df_h[col_qx].values  # px[k] = sobrevivir de edad_inicial+k a edad_inicial+k+1
         edades = df_h["Edad"].values
 
-        kpx_vector = [1.0]
-        prob_acum = 1.0
-
-        for u, edad_actual in enumerate(edades[:-1]):
-            prob_acum *= px[u]
-
-            if edad_actual + 1 < 16:
-                kpx_vector.append(prob_acum)
-
-            elif 16 <= edad_actual + 1 < 25:
+        # Construir kpx de sobrevivencia pura (sin deserción)
+        kpx_sobrev = np.cumprod(px)
+        kpx_sobrev = np.insert(kpx_sobrev, 0, 1.0)  # k=0: sobrevivir 0 años = 1
+        
+        kpx_vector = []
+        
+        for k in range(len(kpx_sobrev)):
+            edad_actual = edad_inicial + k
+            
+            if edad_actual >= 25:
+                kpx_vector.append(0.0)
+            elif edad_actual < 16:
+                kpx_vector.append(kpx_sobrev[k])  # Solo sobrevivencia
+            else:  # 16 <= edad_actual < 25
+                # Sobrevivencia * probabilidad de no desertar a esta edad
                 try:
                     qd = tabla_desercion.loc[
-                        tabla_desercion["Edad"] == (edad_actual + 1),
+                        tabla_desercion["Edad"] == edad_actual,
                         "qx (d)"
                     ].values[0]
-                    prob_acum *= (1 - qd)
+                    prob_no_desertar = (1 - qd)
                 except:
-                    pass
-                kpx_vector.append(prob_acum)
-
-            else:
-                kpx_vector.append(0.0)
+                    prob_no_desertar = 1.0
+                
+                kpx_vector.append(kpx_sobrev[k] * prob_no_desertar)
 
         vectores_kph.append(np.array(kpx_vector))
-
+    
     # =========================
-    # 5. CONVOLUCIONES (IGUAL QUE MCSI)
+    # 5. CONVOLUCIONES
     # =========================
-    max_k = max(len(v) for v in vectores_kph)
+    max_k_hijos = max(len(v) for v in vectores_kph)
 
     prob_combinada = {}
 
-    for k in range(max_k):
-        pk = [v[k] if k < len(v) else 0.0 for v in vectores_kph]
+    for k_hijo in range(max_k_hijos):
+        pk = [v[k_hijo] if k_hijo < len(v) else 0.0 for v in vectores_kph]
 
         dist = np.array([1.0])
         for p in pk:
             dist = np.convolve(dist, np.array([1 - p, p]))
         
-        prob_combinada[k] = dist
+        prob_combinada[k_hijo] = dist
 
     # =========================
     # 6. ARMAR SUMAS b1 y b2
     # =========================
-
     K = len(factor_base)
 
     sumab1 = np.zeros(K)
     sumab2 = np.zeros(K)
 
-    for k in range(K):
-
-        dist = prob_combinada[k] if k in prob_combinada else np.array([1.0])
+    for k_idx in range(K):
+        dist = prob_combinada[k_idx] if k_idx in prob_combinada else np.array([1.0])
 
         s1 = 0.0
         s2 = 0.0
@@ -292,15 +301,8 @@ def pbss_con_hijos(
             s1 += pj * b1_vals[j]
             s2 += pj * b2_vals[j]
 
-        sumab1[k] = s1
-        sumab2[k] = s2
-
-    # =========================
-    # 7. CÓNYUGE
-    # =========================
-    col_qx_cony = "Mujeres qx" if y["sexo"].lower() == "mujer" else "Hombres qx"
-
-    kpy = generar_kpx(tabla_act, "Edad", col_qx_cony, y["edad"])
+        sumab1[k_idx] = s1
+        sumab2[k_idx] = s2
 
     # =========================
     # 8. COMBINACIÓN FINAL
@@ -311,21 +313,22 @@ def pbss_con_hijos(
         kpy[:min_len] * sumab1[:min_len]
         + (1 - kpy[:min_len]) * sumab2[:min_len]
     )
-
-    #  aquí está la magia
-    suma = np.sum(total * factor_base[:min_len])
-
+    
+    productos = total * factor_base[:min_len]
+    
     # =========================
     # 9. FACTORES FINALES
     # =========================
-    PBSS = 11.81 * suma
+    suma = np.sum(productos)
+    
+    PBSS =  11.81285443 * suma
 
     FACBI = 1.00198213882427
     alpha = 0.02
 
     PNSS = FACBI * PBSS
-    MCSS = PNSS * (1 + alpha)
-
+    MCSS = PNSS * (13/12)
+    
     return MCSS
 
 def calcular_monto_constitutivo(
