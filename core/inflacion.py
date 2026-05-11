@@ -13,7 +13,7 @@ def factor_actualizacion(inpc_df, anio):
     fila = inpc_df[inpc_df["Periodos"] == periodo_objetivo]
 
     if fila.empty:
-        raise ValueError(f"No se encontró INPC para {periodo_objetivo}")
+        return 1
 
     indice_pasado = fila["Indice"].values[0]
 
